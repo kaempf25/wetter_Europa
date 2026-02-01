@@ -3,71 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heizlastrechner - Dr.-Ing. Andreas Kämpf energy consulting</title>
+    <title>Heizlastrechner - Dr.-Ing. Andreas K&auml;mpf energy consulting</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <a href="/">
-                <img src="/static/logo.svg" alt="Dr.-Ing. Andreas Kämpf energy consulting" class="logo">
-            </a>
+            <a href="/"><img src="/static/logo.svg" alt="Dr.-Ing. Andreas K&auml;mpf energy consulting" class="logo"></a>
             <h1>Heizlastrechner</h1>
-            <p class="subtitle">Berechne deine Heizlast aus dem tatsächlichen Gasverbrauch und Wetterdaten des DWD</p>
+            <p class="subtitle">Heizlast aus tats&auml;chlichem Gasverbrauch und DWD-Wetterdaten absch&auml;tzen</p>
         </header>
 
         <form id="heizlast-form">
+            <!-- Geb&auml;udedaten -->
             <div class="form-section">
-                <h2>Gebäudedaten</h2>
+                <h2>Geb&auml;udedaten</h2>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="plz">Postleitzahl</label>
                         <input type="text" id="plz" name="plz" placeholder="z.B. 70173" maxlength="5" pattern="[0-9]{5}" required>
                         <span class="hint" id="station-hint"></span>
-                        <span class="field-help">Anhand der PLZ wird die nächstgelegene DWD-Wetterstation ermittelt, um die realen Außentemperaturen für deinen Standort abzurufen.</span>
+                        <span class="field-help">Bestimmt die n&auml;chste DWD-Wetterstation und die Norm-Au&szlig;entemperatur f&uuml;r deinen Standort.</span>
                     </div>
                     <div class="form-group">
-                        <label for="wohnflaeche">Wohnfläche (m²)</label>
+                        <label for="wohnflaeche">Wohnfl&auml;che (m&sup2;)</label>
                         <input type="number" id="wohnflaeche" name="wohnflaeche" placeholder="z.B. 120" min="10" max="2000" required>
-                        <span class="field-help">Die beheizte Wohnfläche deines Gebäudes. Findest du im Energieausweis, Mietvertrag oder Grundriss.</span>
+                        <span class="field-help">Beheizte Wohnfl&auml;che (Energieausweis, Mietvertrag).</span>
                     </div>
                     <div class="form-group">
                         <label for="baujahr">Baujahr</label>
                         <input type="number" id="baujahr" name="baujahr" placeholder="z.B. 1975" min="1800" max="2026" required>
-                        <span class="field-help">Das Baujahr bestimmt den typischen Dämmstandard. Wird für den Vergleichswert herangezogen.</span>
+                        <span class="field-help">F&uuml;r den Vergleich mit typischen D&auml;mmstandards.</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="personen">Personen im Haushalt</label>
+                        <input type="number" id="personen" name="personen" placeholder="z.B. 3" min="0" max="20" value="">
+                        <span class="field-help">Verbessert die Warmwasser-Abtrennung (~3 kWh/Person/Tag). Leer = automatisch.</span>
                     </div>
                 </div>
             </div>
 
+            <!-- Verbrauchsdaten -->
             <div class="form-section">
                 <h2>Verbrauchsdaten</h2>
-                <p class="info">Gib deinen Gasverbrauch für einen beliebigen Zeitraum ein. Am besten eignen sich kalte Wochen im Winter (unter 5°C Außentemperatur), da die Extrapolation dann am genauesten ist.</p>
+                <p class="info">Am besten eignen sich kalte Winterwochen (unter 5&deg;C). Mindestens 7 Tage f&uuml;r zuverl&auml;ssige Ergebnisse.</p>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="datum_von">Von</label>
                         <input type="date" id="datum_von" name="datum_von" required>
-                        <span class="field-help">Startdatum der Gaszähler-Ablesung.</span>
                     </div>
                     <div class="form-group">
                         <label for="datum_bis">Bis</label>
                         <input type="date" id="datum_bis" name="datum_bis" required>
                         <span class="hint" id="datum-hint"></span>
-                        <span class="field-help">Enddatum der Ablesung. Muss in der Vergangenheit liegen.</span>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="gasverbrauch">Gasverbrauch</label>
                         <input type="number" id="gasverbrauch" name="gasverbrauch" placeholder="z.B. 150" min="0" step="0.1" required>
-                        <span class="field-help">Differenz der Gaszähler-Stände zwischen Start- und Enddatum. Ablesen am Gaszähler im Keller.</span>
+                        <span class="field-help">Differenz der Gasz&auml;hler-St&auml;nde (Anfang &minus; Ende).</span>
                     </div>
                     <div class="form-group">
                         <label for="einheit">Einheit</label>
                         <select id="einheit" name="einheit">
-                            <option value="kwh">kWh</option>
-                            <option value="m3">m³ (Gaszähler)</option>
+                            <option value="kwh">kWh (laut Rechnung)</option>
+                            <option value="m3">m&sup3; (Gasz&auml;hler)</option>
                         </select>
-                        <span class="field-help">Die meisten Gaszähler zeigen m³ an. kWh findest du auf der Gasrechnung.</span>
+                        <span class="field-help">kWh bevorzugt (exakter). m&sup3; wird mit Brennwert umgerechnet.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Erweiterte Einstellungen -->
+            <div class="form-section collapsible">
+                <h2 class="toggle-header" onclick="toggleSection(this)">Erweiterte Einstellungen <span class="toggle-icon">&#9654;</span></h2>
+                <div class="toggle-content hidden">
+                    <p class="info">Diese Werte findest du auf deiner Gasrechnung. Bei kWh-Eingabe sind Brennwert und Zustandszahl bereits enthalten.</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="brennwert">Brennwert H<sub>s</sub> (kWh/m&sup3;)</label>
+                            <input type="number" id="brennwert" name="brennwert" value="11.2" min="8" max="14" step="0.1">
+                            <span class="field-help">Steht auf der Gasrechnung. Erdgas H: ~11,2. Erdgas L: ~9,8.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="zustandszahl">Zustandszahl z</label>
+                            <input type="number" id="zustandszahl" name="zustandszahl" value="0.95" min="0.8" max="1.1" step="0.01">
+                            <span class="field-help">Steht auf der Gasrechnung. Typisch: 0,90&ndash;0,98.</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="eta">Anlagennutzungsgrad &eta;</label>
+                            <select id="eta" name="eta">
+                                <option value="1.0" selected>kWh-Eingabe (bereits Nutzw&auml;rme)</option>
+                                <option value="0.95">Brennwertkessel (~95%)</option>
+                                <option value="0.88">Niedertemperaturkessel (~88%)</option>
+                                <option value="0.80">Standardkessel (~80%)</option>
+                            </select>
+                            <span class="field-help">Wie effizient wandelt deine Heizung Gas in W&auml;rme um? Bei kWh laut Rechnung: &bdquo;bereits Nutzw&auml;rme&ldquo;.</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="heizgrenze">Heizgrenztemperatur (&deg;C)</label>
+                            <input type="range" id="heizgrenze" name="heizgrenze" min="10" max="18" value="15" step="1">
+                            <span id="heizgrenze-label" style="font-weight:600;font-size:0.9em;">15&deg;C</span>
+                            <span class="field-help">Altbau: 15&ndash;16&deg;C. Gut ged&auml;mmt: 12&ndash;14&deg;C. Tage &uuml;ber dieser Grenze werden nicht gewertet.</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -80,168 +121,214 @@
             <p>Wetterdaten werden abgerufen und Heizlast berechnet...</p>
         </div>
 
-        <div id="error" class="hidden">
-            <p id="error-text"></p>
-        </div>
+        <div id="error" class="hidden"><p id="error-text"></p></div>
+
+        <!-- Warnungen -->
+        <div id="warnungen" class="hidden"></div>
 
         <div id="results" class="hidden">
             <h2>Ergebnisse</h2>
+            <p class="info" style="margin-bottom:16px;"><em>Hinweis: Dies ist eine Absch&auml;tzung aus dem Verbrauch, keine normkonforme Heizlastberechnung nach DIN EN 12831.</em></p>
 
+            <!-- Hauptergebnis als Bandbreite -->
             <div class="result-cards">
                 <div class="card highlight">
-                    <h3>Norm-Heizlast</h3>
+                    <h3>Heizlast (aus Verbrauch)</h3>
                     <div class="value" id="res-heizlast">-</div>
                     <div class="unit">kW</div>
-                    <p class="desc">Bei Norm-Außentemperatur <span id="res-norm-temp">-</span>°C</p>
+                    <p class="desc">Bandbreite: <span id="res-bandbreite">-</span> kW</p>
+                    <p class="desc">Bei Norm-Au&szlig;entemperatur <span id="res-norm-temp">-</span>&deg;C</p>
                 </div>
                 <div class="card">
-                    <h3>Spezifische Heizlast</h3>
+                    <h3>Spez. Heizlast</h3>
                     <div class="value" id="res-spezifisch">-</div>
-                    <div class="unit">W/m²</div>
+                    <div class="unit">W/m&sup2;</div>
                 </div>
                 <div class="card accent">
-                    <h3>Wärmepumpe</h3>
+                    <h3>W&auml;rmepumpe</h3>
                     <div class="value" id="res-wp">-</div>
                     <div class="unit">kW (empfohlen)</div>
                     <p class="desc">inkl. 10% Sicherheitszuschlag</p>
                 </div>
             </div>
 
-            <!-- Erklärung der Ergebnis-Karten -->
+            <!-- Erkl&auml;rung -->
             <div class="detail-section ergebnis-erklaerung">
                 <h3>Was bedeuten diese Werte?</h3>
                 <div class="erklaerung-grid">
                     <div class="erklaerung-item">
-                        <strong>Norm-Heizlast (kW)</strong>
-                        <p>Die maximale Heizleistung, die dein Gebäude am kältesten Tag des Jahres (Norm-Außentemperatur) benötigt, um 20°C Innentemperatur zu halten. Das ist der zentrale Wert für die Auslegung einer neuen Heizung.</p>
+                        <strong>Heizlast aus Verbrauch (kW)</strong>
+                        <p>Die gesch&auml;tzte maximale Heizleistung am k&auml;ltesten Tag. Abgeleitet aus deinem realen Gasverbrauch und den gemessenen Au&szlig;entemperaturen &ndash; keine rein theoretische Berechnung.</p>
                     </div>
                     <div class="erklaerung-item">
-                        <strong>Spezifische Heizlast (W/m²)</strong>
-                        <p>Die Heizlast pro Quadratmeter Wohnfläche. Damit lässt sich dein Gebäude mit typischen Werten für das Baujahr vergleichen. Niedrige Werte bedeuten gute Dämmung.</p>
+                        <strong>Spezifische Heizlast (W/m&sup2;)</strong>
+                        <p>Heizlast pro Quadratmeter. Erlaubt den Vergleich mit Richtwerten f&uuml;r dein Baujahr.</p>
                     </div>
                     <div class="erklaerung-item">
-                        <strong>Wärmepumpe (kW)</strong>
-                        <p>Empfohlene Mindestleistung der Wärmepumpe. Enthält 10% Sicherheitszuschlag gegenüber der berechneten Norm-Heizlast, um auch bei extremer Kälte ausreichend Leistung zu haben.</p>
+                        <strong>W&auml;rmepumpe (kW)</strong>
+                        <p>Empfohlene Mindestleistung mit 10% Sicherheitszuschlag f&uuml;r Extremwetter und Aufheizbetrieb.</p>
                     </div>
                 </div>
             </div>
 
+            <!-- Wetterdaten -->
             <div class="detail-section">
                 <h3>Wetterdaten</h3>
                 <table>
                     <tr><td>Wetterstation</td><td id="res-station">-</td></tr>
                     <tr><td>Entfernung</td><td id="res-distance">-</td></tr>
-                    <tr><td>Mittlere Außentemperatur</td><td id="res-avg-temp">-</td></tr>
+                    <tr><td>Mittlere Au&szlig;entemperatur (alle Tage)</td><td id="res-avg-temp">-</td></tr>
+                    <tr><td>Mittlere Au&szlig;entemperatur (nur Heiztage)</td><td id="res-avg-temp-heiz">-</td></tr>
                     <tr><td>Min / Max Temperatur</td><td id="res-minmax-temp">-</td></tr>
-                    <tr><td>Ausgewertete Tage</td><td id="res-tage">-</td></tr>
+                    <tr><td>Heiztage / Gesamttage</td><td id="res-tage">-</td></tr>
+                    <tr><td>Heizgradtage (HGT)</td><td id="res-hgt">-</td></tr>
                 </table>
             </div>
 
+            <!-- Berechnung -->
             <div class="detail-section">
-                <h3>Berechnung</h3>
+                <h3>Energiebilanz</h3>
                 <table>
-                    <tr><td>Heizenergie (abzgl. Warmwasser)</td><td id="res-heizenergie">-</td></tr>
-                    <tr><td>Mittlere Heizleistung im Zeitraum</td><td id="res-mittlere-leistung">-</td></tr>
+                    <tr><td>Gasverbrauch (Brennstoffenergie)</td><td id="res-gasverbrauch">-</td></tr>
+                    <tr><td>Nutzw&auml;rme (nach &eta;)</td><td id="res-nutzwaerme">-</td></tr>
+                    <tr><td>Warmwasseranteil</td><td id="res-warmwasser">-</td></tr>
+                    <tr><td>Heizenergie (bereinigt)</td><td id="res-heizenergie">-</td></tr>
+                    <tr><td>W&auml;rmeverlustkennwert b</td><td id="res-b">-</td></tr>
+                    <tr><td>Mittlere Heizleistung (Heiztage)</td><td id="res-mittlere-leistung">-</td></tr>
                 </table>
             </div>
 
+            <!-- Vergleich Baujahr -->
             <div class="detail-section">
-                <h3>Vergleich: Schätzung nach Baujahr</h3>
+                <h3>Vergleich: Sch&auml;tzung nach Baujahr</h3>
                 <p id="res-schaetzung">-</p>
                 <div class="bar-chart" id="bar-chart"></div>
             </div>
 
+            <!-- Sensitivit&auml;tsanalyse -->
+            <div class="detail-section">
+                <h3>Sensitivit&auml;tsanalyse (Bandbreite)</h3>
+                <p class="info">Zeigt, wie sich die Heizlast je nach Annahmen ver&auml;ndert. Die Wahrheit liegt irgendwo in diesem Bereich.</p>
+                <table class="sensitivity-table">
+                    <thead>
+                        <tr><th></th><th>WW 8%</th><th>WW 12%</th><th>WW 18%</th></tr>
+                    </thead>
+                    <tbody id="sensitivity-body"></tbody>
+                </table>
+            </div>
+
+            <!-- Temperaturverlauf -->
             <div class="detail-section">
                 <h3>Temperaturverlauf</h3>
                 <canvas id="temp-chart" width="700" height="250"></canvas>
             </div>
 
-            <!-- Detaillierter Berechnungsweg -->
+            <!-- Berechnungsweg -->
             <div class="detail-section berechnungsweg">
-                <h3>Berechnungsweg im Detail</h3>
-                <p class="info">So wurde die Heizlast Schritt für Schritt berechnet:</p>
-
-                <div class="rechenschritt">
-                    <h4>Schritt 1: Gasverbrauch in Heizenergie umrechnen</h4>
-                    <p id="bw-step1" class="formel"></p>
-                    <p class="erklaerung-text">Vom gemessenen Gasverbrauch werden pauschal 12% für Warmwasser abgezogen, da dieses ganzjährig anfällt und nicht zur Raumheizung beiträgt. Bei der Eingabe in m³ wird zusätzlich mit dem Brennwert (11,2 kWh/m³) und der Zustandszahl (0,95) umgerechnet.</p>
-                </div>
-
-                <div class="rechenschritt">
-                    <h4>Schritt 2: Mittlere Heizleistung im Messzeitraum</h4>
-                    <p id="bw-step2" class="formel"></p>
-                    <p class="erklaerung-text">Die Heizenergie wird durch die Stunden im Messzeitraum geteilt. Das ergibt die durchschnittliche Heizleistung, die im Messzeitraum benötigt wurde.</p>
-                </div>
-
-                <div class="rechenschritt">
-                    <h4>Schritt 3: Extrapolation auf die Norm-Außentemperatur</h4>
-                    <p id="bw-step3" class="formel"></p>
-                    <p class="erklaerung-text">Die Heizleistung ist proportional zur Temperaturdifferenz zwischen Innen- und Außentemperatur. Je kälter es draußen ist, desto mehr muss geheizt werden. Die Norm-Außentemperatur ist die statistisch kälteste Temperatur, die am Standort zu erwarten ist (nach DIN/TS 12831). Durch das Verhältnis der Temperaturdifferenzen wird die gemessene Leistung auf diesen Extremfall hochgerechnet.</p>
-                </div>
-
-                <div class="rechenschritt">
-                    <h4>Schritt 4: Spezifische Heizlast</h4>
-                    <p id="bw-step4" class="formel"></p>
-                    <p class="erklaerung-text">Die Heizlast pro Quadratmeter erlaubt den Vergleich mit Richtwerten für das Baujahr. Typische Werte: Altbau (vor 1978): 100-170 W/m², Neubau (nach 2002): 25-60 W/m².</p>
-                </div>
-
-                <div class="rechenschritt">
-                    <h4>Schritt 5: Wärmepumpen-Empfehlung</h4>
-                    <p id="bw-step5" class="formel"></p>
-                    <p class="erklaerung-text">Auf die berechnete Norm-Heizlast werden 10% Sicherheitszuschlag aufgeschlagen. Damit ist die Wärmepumpe auch bei Extremwetter und Aufheizbetrieb (z.B. nach Nachtabsenkung) ausreichend dimensioniert.</p>
+                <h3 class="toggle-header" onclick="toggleSection(this)">Berechnungsweg im Detail <span class="toggle-icon">&#9654;</span></h3>
+                <div class="toggle-content hidden">
+                    <div class="rechenschritt">
+                        <h4>Schritt 1: Gasverbrauch &rarr; Nutzw&auml;rme</h4>
+                        <p id="bw-step1" class="formel"></p>
+                        <p class="erklaerung-text">Bei m&sup3;-Eingabe: Umrechnung mit Brennwert und Zustandszahl. Bei kWh-Eingabe: direkte &Uuml;bernahme. Anschlie&szlig;end Multiplikation mit dem Anlagennutzungsgrad &eta;.</p>
+                    </div>
+                    <div class="rechenschritt">
+                        <h4>Schritt 2: Heizgradtage &amp; Warmwasser-Trennung</h4>
+                        <p id="bw-step2" class="formel"></p>
+                        <p class="erklaerung-text">Heizgradtage (HGT) summieren die Temperaturdifferenz zur Heizgrenze f&uuml;r alle Tage unterhalb der Heizgrenze. Tage &uuml;ber der Heizgrenze werden als reiner Warmwasserverbrauch gewertet (automatische Trennung) oder der Warmwasserbedarf wird &uuml;ber die Personenzahl gesch&auml;tzt.</p>
+                    </div>
+                    <div class="rechenschritt">
+                        <h4>Schritt 3: W&auml;rmeverlustkennwert</h4>
+                        <p id="bw-step3" class="formel"></p>
+                        <p class="erklaerung-text">Der W&auml;rmeverlustkennwert b beschreibt, wie viel Energie pro Grad Temperaturdifferenz und Tag verloren geht. Er ist das zentrale Ma&szlig; f&uuml;r die Geb&auml;udequalit&auml;t.</p>
+                    </div>
+                    <div class="rechenschritt">
+                        <h4>Schritt 4: Extrapolation auf Norm-Au&szlig;entemperatur</h4>
+                        <p id="bw-step4" class="formel"></p>
+                        <p class="erklaerung-text">Der W&auml;rmeverlustkennwert wird mit der Temperaturdifferenz zwischen Innen- und Norm-Au&szlig;entemperatur multipliziert und durch 24 geteilt (Umrechnung Kd &rarr; kW).</p>
+                    </div>
+                    <div class="rechenschritt">
+                        <h4>Schritt 5: Spezifische Heizlast &amp; WP-Empfehlung</h4>
+                        <p id="bw-step5" class="formel"></p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Zugrundeliegende Annahmen -->
+            <!-- Annahmen -->
             <div class="detail-section">
-                <h3>Zugrundeliegende Annahmen</h3>
-                <table>
-                    <tr><td>Innentemperatur (T<sub>innen</sub>)</td><td>20 °C</td></tr>
-                    <tr><td>Warmwasseranteil</td><td>12 % des Gasverbrauchs</td></tr>
-                    <tr><td>Kesselwirkungsgrad (bei kWh-Eingabe)</td><td>bereits enthalten</td></tr>
-                    <tr><td>Brennwert Erdgas H (bei m³-Eingabe)</td><td>11,2 kWh/m³</td></tr>
-                    <tr><td>Zustandszahl (bei m³-Eingabe)</td><td>0,95</td></tr>
-                    <tr><td>Sicherheitszuschlag Wärmepumpe</td><td>10 %</td></tr>
-                    <tr><td>Norm-Außentemperatur</td><td id="res-norm-temp2">nach DIN/TS 12831</td></tr>
-                </table>
+                <h3 class="toggle-header" onclick="toggleSection(this)">Verwendete Annahmen <span class="toggle-icon">&#9654;</span></h3>
+                <div class="toggle-content hidden">
+                    <table id="annahmen-table">
+                        <tr><td>Innentemperatur</td><td>20 &deg;C</td></tr>
+                        <tr><td>Heizgrenztemperatur</td><td id="res-heizgrenze-a">15 &deg;C</td></tr>
+                        <tr><td>Warmwasser-Methode</td><td id="res-ww-methode">-</td></tr>
+                        <tr><td>Warmwasseranteil</td><td id="res-ww-anteil-a">-</td></tr>
+                        <tr><td>Anlagennutzungsgrad &eta;</td><td id="res-eta-a">-</td></tr>
+                        <tr><td>Brennwert (bei m&sup3;)</td><td id="res-bw-a">-</td></tr>
+                        <tr><td>Zustandszahl (bei m&sup3;)</td><td id="res-zz-a">-</td></tr>
+                        <tr><td>Sicherheitszuschlag WP</td><td>10 %</td></tr>
+                        <tr><td>Norm-Au&szlig;entemperatur</td><td id="res-norm-temp2">-</td></tr>
+                    </table>
+                </div>
             </div>
 
             <div class="hinweis">
                 <h3>Hinweise zur Genauigkeit</h3>
                 <ul>
-                    <li><strong>Messzeitraum:</strong> Wähle am besten kalte Winterwochen (unter 5°C Tagesmittel). Je kälter der Messzeitraum, desto geringer der Extrapolationsfehler.</li>
-                    <li><strong>Kurze Zeiträume</strong> (1-2 Tage) können durch Speichereffekte im Gebäude ungenau sein. Empfohlen sind mindestens 7 Tage.</li>
-                    <li><strong>Warmwasser:</strong> Der pauschale Abzug von 12% ist ein Durchschnittswert. Bei Durchlauferhitzer (elektr. Warmwasser) auf 0% setzen, indem du den Gasverbrauch manuell korrigierst.</li>
-                    <li><strong>Mehrere Messungen:</strong> Für mehr Genauigkeit kannst du verschiedene Zeiträume auswerten und die Ergebnisse vergleichen.</li>
-                    <li><strong>Sanierungen:</strong> Das Baujahr dient nur dem Vergleich. Wurde das Gebäude gedämmt, weicht der berechnete Wert (korrekt) vom Baujahr-Richtwert ab.</li>
+                    <li><strong>Methode:</strong> Dies ist eine <em>Absch&auml;tzung</em> der Heizlast aus dem realen Verbrauch, keine normkonforme Berechnung nach DIN EN 12831.</li>
+                    <li><strong>Messzeitraum:</strong> W&auml;hle kalte Winterwochen (unter 5&deg;C). Bei w&auml;rmeren Zeitr&auml;umen wird die Extrapolation ungenauer.</li>
+                    <li><strong>Mindestens 7 Tage</strong> f&uuml;r zuverl&auml;ssige Ergebnisse (Speichereffekte im Geb&auml;ude).</li>
+                    <li><strong>Mehrere Messungen:</strong> Verschiedene Zeitr&auml;ume auswerten und Ergebnisse vergleichen.</li>
+                    <li><strong>Sanierungen:</strong> Das Baujahr dient nur dem Vergleich. Sanierte Geb&auml;ude weichen korrekt davon ab.</li>
+                    <li><strong>Bandbreite beachten:</strong> Die Sensitivit&auml;tsanalyse zeigt, wie stark die Annahmen das Ergebnis beeinflussen.</li>
                 </ul>
             </div>
         </div>
 
         <footer>
-            <img src="/static/logo.svg" alt="Dr.-Ing. Andreas Kämpf energy consulting" class="footer-logo">
-            <p>Heizlastrechner | Wetterdaten: <a href="https://www.dwd.de/" target="_blank">Deutscher Wetterdienst (DWD)</a> via <a href="https://brightsky.dev/" target="_blank">Bright Sky API</a></p>
+            <img src="/static/logo.svg" alt="Dr.-Ing. Andreas K&auml;mpf energy consulting" class="footer-logo">
+            <p>Heizlastrechner | Wetterdaten: <a href="https://www.dwd.de/" target="_blank">DWD</a> via <a href="https://brightsky.dev/" target="_blank">Bright Sky API</a></p>
         </footer>
     </div>
 
     <script>
-        // Datumsfelder auf heute begrenzen
+        // Collapsible Sections
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.toggle-icon');
+            content.classList.toggle('hidden');
+            icon.textContent = content.classList.contains('hidden') ? '\u25B6' : '\u25BC';
+        }
+
+        // Heizgrenze Slider
+        document.getElementById('heizgrenze').addEventListener('input', function() {
+            document.getElementById('heizgrenze-label').textContent = this.value + '\u00B0C';
+        });
+
+        // Datumsfelder begrenzen
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('datum_von').setAttribute('max', today);
         document.getElementById('datum_bis').setAttribute('max', today);
-
         document.getElementById('datum_bis').addEventListener('change', function() {
             const hint = document.getElementById('datum-hint');
             if (this.value > today) {
                 this.value = today;
-                hint.textContent = 'Enddatum auf heute gesetzt (keine Zukunftsdaten verfügbar)';
+                hint.textContent = 'Auf heute begrenzt (keine Zukunftsdaten)';
                 hint.className = 'hint error';
+            } else { hint.textContent = ''; }
+        });
+
+        // m3-Felder ein/ausblenden
+        document.getElementById('einheit').addEventListener('change', function() {
+            // Wenn kWh: eta auf 1.0 setzen als Default
+            if (this.value === 'kwh') {
+                document.getElementById('eta').value = '1.0';
             } else {
-                hint.textContent = '';
+                document.getElementById('eta').value = '0.88';
             }
         });
 
-        // PLZ → Station-Lookup bei Eingabe
+        // PLZ Lookup
         let stationTimeout;
         document.getElementById('plz').addEventListener('input', function() {
             clearTimeout(stationTimeout);
@@ -249,38 +336,35 @@
             const hint = document.getElementById('station-hint');
             if (plz.length === 5) {
                 stationTimeout = setTimeout(() => {
-                    fetch(`/api/station?plz=${plz}`)
+                    fetch('/api/station?plz=' + plz)
                         .then(r => r.json())
                         .then(data => {
                             if (data.station_name) {
-                                hint.textContent = `Wetterstation: ${data.station_name} (${data.distance_km} km)`;
+                                hint.textContent = 'Wetterstation: ' + data.station_name + ' (' + data.distance_km + ' km)';
                                 hint.className = 'hint success';
                             } else {
-                                hint.textContent = data.error || 'Station nicht gefunden';
+                                hint.textContent = data.error || 'Nicht gefunden';
                                 hint.className = 'hint error';
                             }
-                        })
-                        .catch(() => { hint.textContent = ''; });
+                        }).catch(() => { hint.textContent = ''; });
                 }, 300);
-            } else {
-                hint.textContent = '';
-                hint.className = 'hint';
-            }
+            } else { hint.textContent = ''; hint.className = 'hint'; }
         });
 
-        // Formular absenden
+        // Formular
         document.getElementById('heizlast-form').addEventListener('submit', async function(e) {
             e.preventDefault();
-
             const btn = document.getElementById('submit-btn');
             const loading = document.getElementById('loading');
             const errorDiv = document.getElementById('error');
             const results = document.getElementById('results');
+            const warnDiv = document.getElementById('warnungen');
 
             btn.disabled = true;
             loading.classList.remove('hidden');
             errorDiv.classList.add('hidden');
             results.classList.add('hidden');
+            warnDiv.classList.add('hidden');
 
             const payload = {
                 plz: document.getElementById('plz').value,
@@ -289,7 +373,12 @@
                 gasverbrauch: parseFloat(document.getElementById('gasverbrauch').value),
                 wohnflaeche: parseFloat(document.getElementById('wohnflaeche').value),
                 baujahr: parseInt(document.getElementById('baujahr').value),
+                personen: parseInt(document.getElementById('personen').value) || 0,
                 einheit: document.getElementById('einheit').value,
+                brennwert: parseFloat(document.getElementById('brennwert').value),
+                zustandszahl: parseFloat(document.getElementById('zustandszahl').value),
+                eta: parseFloat(document.getElementById('eta').value),
+                heizgrenze: parseFloat(document.getElementById('heizgrenze').value),
             };
 
             try {
@@ -299,7 +388,6 @@
                     body: JSON.stringify(payload),
                 });
                 const data = await resp.json();
-
                 if (data.error) {
                     document.getElementById('error-text').textContent = data.error;
                     errorDiv.classList.remove('hidden');
@@ -317,183 +405,219 @@
         });
 
         function displayResults(data, payload) {
+            // Hauptergebnis
             document.getElementById('res-heizlast').textContent = data.heizlast_kw;
             document.getElementById('res-norm-temp').textContent = data.norm_aussentemperatur;
             document.getElementById('res-spezifisch').textContent = data.heizlast_spezifisch_w_m2;
             document.getElementById('res-wp').textContent = data.empfehlung_waermepumpe_kw;
 
+            // Bandbreite
+            const sens = data.sensitivitaet;
+            document.getElementById('res-bandbreite').textContent = sens.min_kw + ' \u2013 ' + sens.max_kw;
+
+            // Wetter
             document.getElementById('res-station').textContent = data.station.station_name;
             document.getElementById('res-distance').textContent = data.station.distance_km + ' km';
-            document.getElementById('res-avg-temp').textContent = data.temperatur.mittelwert + ' °C';
-            document.getElementById('res-minmax-temp').textContent =
-                data.temperatur.minimum + ' °C / ' + data.temperatur.maximum + ' °C';
-            document.getElementById('res-tage').textContent = data.temperatur.tage + ' Tage';
+            document.getElementById('res-avg-temp').textContent = data.t_avg_alle + ' \u00B0C';
+            document.getElementById('res-avg-temp-heiz').textContent = data.t_avg_heiztage + ' \u00B0C';
+            document.getElementById('res-minmax-temp').textContent = data.temperatur.minimum + ' / ' + data.temperatur.maximum + ' \u00B0C';
+            document.getElementById('res-tage').textContent = data.heiztage + ' / ' + data.temperatur.tage + ' (Heizgrenze ' + data.heizgrenze + '\u00B0C)';
+            document.getElementById('res-hgt').textContent = data.heizgradtage + ' Kd';
 
+            // Energiebilanz
+            document.getElementById('res-gasverbrauch').textContent = data.eingaben.gasverbrauch_kwh + ' kWh';
+            document.getElementById('res-nutzwaerme').textContent = data.nutzwaerme_kwh + ' kWh (\u03B7=' + (data.eta * 100).toFixed(0) + '%)';
+            var wwMethode = {'personen': 'Personenzahl', 'automatisch': 'Nicht-Heiztage', 'pauschal': 'Pauschal 12%'};
+            document.getElementById('res-warmwasser').textContent = data.warmwasser_kwh + ' kWh (' + data.warmwasser_anteil_pct + '%, ' + (wwMethode[data.grundlast_methode] || data.grundlast_methode) + ')';
             document.getElementById('res-heizenergie').textContent = data.heizenergie_kwh + ' kWh';
+            document.getElementById('res-b').textContent = data.waermeverlustkennwert_b + ' kWh/(Kd)';
             document.getElementById('res-mittlere-leistung').textContent = data.mittlere_heizleistung_kw + ' kW';
 
-            // Norm-Temperatur in Annahmen
-            document.getElementById('res-norm-temp2').textContent =
-                data.norm_aussentemperatur + ' °C (PLZ ' + data.eingaben.plz + ')';
-
-            // Vergleich Baujahr-Schätzung
-            const s = data.schaetzung_baujahr;
+            // Baujahr
+            var s = data.schaetzung_baujahr;
             document.getElementById('res-schaetzung').textContent =
-                `Typisch für Baujahr ${data.eingaben.baujahr}: ${s.min_kw} - ${s.max_kw} kW ` +
-                `(${s.spezifisch_min} - ${s.spezifisch_max} W/m²)`;
+                'Typisch f\u00FCr Baujahr ' + data.eingaben.baujahr + ': ' + s.min_kw + ' \u2013 ' + s.max_kw + ' kW (' + s.spezifisch_min + ' \u2013 ' + s.spezifisch_max + ' W/m\u00B2)';
 
-            // Berechnungsweg befüllen
+            // Sensitivit\u00E4t
+            fillSensitivity(data.sensitivitaet);
+
+            // Annahmen
+            document.getElementById('res-heizgrenze-a').textContent = data.heizgrenze + ' \u00B0C';
+            document.getElementById('res-ww-methode').textContent = wwMethode[data.grundlast_methode] || data.grundlast_methode;
+            document.getElementById('res-ww-anteil-a').textContent = data.warmwasser_anteil_pct + ' %';
+            document.getElementById('res-eta-a').textContent = (data.eta * 100).toFixed(0) + ' %';
+            document.getElementById('res-bw-a').textContent = data.eingaben.brennwert + ' kWh/m\u00B3';
+            document.getElementById('res-zz-a').textContent = data.eingaben.zustandszahl;
+            document.getElementById('res-norm-temp2').textContent = data.norm_aussentemperatur + ' \u00B0C (PLZ ' + data.eingaben.plz + ')';
+
+            // Berechnungsweg
             fillBerechnungsweg(data, payload);
 
+            // Warnungen
+            var warnDiv = document.getElementById('warnungen');
+            if (data.warnungen && data.warnungen.length > 0) {
+                warnDiv.innerHTML = '<div class="warn-box">' + data.warnungen.map(function(w) { return '<p>\u26A0\uFE0F ' + w + '</p>'; }).join('') + '</div>';
+                warnDiv.classList.remove('hidden');
+            }
+
             drawBarChart(data);
-            drawTempChart(data.daily_temps);
+            drawTempChart(data.daily_temps, data.heizgrenze);
+        }
+
+        function fillSensitivity(sens) {
+            var body = document.getElementById('sensitivity-body');
+            body.innerHTML = '';
+            if (!sens.varianten || sens.varianten.length === 0) return;
+
+            // Gruppiere nach Heizgrenze
+            var groups = {};
+            sens.varianten.forEach(function(v) {
+                if (!groups[v.heizgrenze]) groups[v.heizgrenze] = {};
+                groups[v.heizgrenze][v.warmwasser_pct] = v;
+            });
+
+            Object.keys(groups).sort().forEach(function(hg) {
+                var row = document.createElement('tr');
+                row.innerHTML = '<td><strong>HG ' + hg + '\u00B0C</strong></td>';
+                [8, 12, 18].forEach(function(ww) {
+                    var v = groups[hg][ww];
+                    if (v) {
+                        row.innerHTML += '<td>' + v.heizlast_kw + ' kW <span class="sens-sub">(' + v.spezifisch_w_m2 + ' W/m\u00B2)</span></td>';
+                    } else {
+                        row.innerHTML += '<td>-</td>';
+                    }
+                });
+                body.appendChild(row);
+            });
         }
 
         function fillBerechnungsweg(data, payload) {
-            const gasKwh = data.eingaben.gasverbrauch_kwh;
-            const qHeiz = data.heizenergie_kwh;
-            const tage = data.temperatur.tage;
-            const stunden = tage * 24;
-            const pMess = data.mittlere_heizleistung_kw;
-            const tAvg = data.temperatur.mittelwert;
-            const tNorm = data.norm_aussentemperatur;
-            const tInnen = 20;
-            const heizlast = data.heizlast_kw;
-            const spez = data.heizlast_spezifisch_w_m2;
-            const wp = data.empfehlung_waermepumpe_kw;
-            const wf = data.eingaben.wohnflaeche;
-
-            // Step 1
-            let step1;
+            var e = data.eingaben;
+            var step1;
             if (payload.einheit === 'm3') {
-                step1 = `Gasverbrauch: ${payload.gasverbrauch} m³ × 11,2 kWh/m³ × 0,95 = ${gasKwh} kWh\n` +
-                         `Heizenergie: ${gasKwh} kWh × (1 − 0,12) = ${qHeiz} kWh`;
+                step1 = e.gasverbrauch_roh + ' m\u00B3 \u00D7 ' + e.brennwert + ' kWh/m\u00B3 \u00D7 ' + e.zustandszahl + ' = ' + e.gasverbrauch_kwh + ' kWh (Brennstoff)\nNutzw\u00E4rme: ' + e.gasverbrauch_kwh + ' kWh \u00D7 ' + data.eta + ' = ' + data.nutzwaerme_kwh + ' kWh';
             } else {
-                step1 = `Heizenergie: ${gasKwh} kWh × (1 − 0,12) = ${qHeiz} kWh`;
+                step1 = e.gasverbrauch_kwh + ' kWh';
+                if (data.eta < 1) step1 += ' \u00D7 \u03B7=' + data.eta + ' = ' + data.nutzwaerme_kwh + ' kWh Nutzw\u00E4rme';
             }
             document.getElementById('bw-step1').textContent = step1;
 
-            // Step 2
+            var methode = data.grundlast_methode === 'personen' ? '(' + e.personen + ' Pers. \u00D7 3 kWh/Tag \u00D7 ' + data.temperatur.tage + ' Tage)' :
+                          data.grundlast_methode === 'automatisch' ? '(' + data.nicht_heiztage + ' Nicht-Heiztage / ' + data.temperatur.tage + ' Gesamttage)' : '(pauschal 12%)';
             document.getElementById('bw-step2').textContent =
-                `P_mittel = ${qHeiz} kWh ÷ (${tage} Tage × 24 h) = ${qHeiz} ÷ ${stunden} = ${pMess} kW`;
+                'HGT = ' + data.heizgradtage + ' Kd (' + data.heiztage + ' Heiztage unter ' + data.heizgrenze + '\u00B0C)\nWarmwasser: ' + data.warmwasser_kwh + ' kWh ' + methode + '\nHeizenergie: ' + data.nutzwaerme_kwh + ' \u2212 ' + data.warmwasser_kwh + ' = ' + data.heizenergie_kwh + ' kWh';
 
-            // Step 3
-            const deltaMess = (tInnen - tAvg).toFixed(1);
-            const deltaNorm = (tInnen - tNorm).toFixed(1);
             document.getElementById('bw-step3').textContent =
-                `Heizlast = ${pMess} kW × (${tInnen}°C − (${tNorm}°C)) ÷ (${tInnen}°C − ${tAvg}°C)\n` +
-                `         = ${pMess} kW × ${deltaNorm} ÷ ${deltaMess}\n` +
-                `         = ${heizlast} kW`;
+                'b = ' + data.heizenergie_kwh + ' kWh \u00F7 ' + data.heizgradtage + ' Kd = ' + data.waermeverlustkennwert_b + ' kWh/(Kd)';
 
-            // Step 4
+            var dT = (20 - data.norm_aussentemperatur);
             document.getElementById('bw-step4').textContent =
-                `Spezifisch = ${heizlast} kW × 1000 ÷ ${wf} m² = ${spez} W/m²`;
+                'Heizlast = ' + data.waermeverlustkennwert_b + ' kWh/(Kd) \u00D7 (20\u00B0C \u2212 (' + data.norm_aussentemperatur + '\u00B0C)) \u00F7 24 h\n         = ' + data.waermeverlustkennwert_b + ' \u00D7 ' + dT + ' \u00F7 24 = ' + data.heizlast_kw + ' kW';
 
-            // Step 5
             document.getElementById('bw-step5').textContent =
-                `WP-Empfehlung = ${heizlast} kW × 1,10 = ${wp} kW`;
+                'Spezifisch: ' + data.heizlast_kw + ' kW \u00D7 1000 \u00F7 ' + e.wohnflaeche + ' m\u00B2 = ' + data.heizlast_spezifisch_w_m2 + ' W/m\u00B2\nWP-Empfehlung: ' + data.heizlast_kw + ' kW \u00D7 1,10 = ' + data.empfehlung_waermepumpe_kw + ' kW';
         }
 
         function drawBarChart(data) {
-            const container = document.getElementById('bar-chart');
+            var container = document.getElementById('bar-chart');
             container.innerHTML = '';
-            const s = data.schaetzung_baujahr;
-            const maxVal = Math.max(data.heizlast_kw, s.max_kw) * 1.2;
+            var s = data.schaetzung_baujahr;
+            var sens = data.sensitivitaet;
+            var maxVal = Math.max(data.heizlast_kw, s.max_kw, sens.max_kw) * 1.2;
 
-            const items = [
+            var items = [
                 { label: 'Berechnet', value: data.heizlast_kw, cls: 'bar-calculated' },
-                { label: 'Schätzung Min', value: s.min_kw, cls: 'bar-estimate' },
-                { label: 'Schätzung Max', value: s.max_kw, cls: 'bar-estimate' },
+                { label: 'Bandbreite Min', value: sens.min_kw, cls: 'bar-range' },
+                { label: 'Bandbreite Max', value: sens.max_kw, cls: 'bar-range' },
+                { label: 'Baujahr Min', value: s.min_kw, cls: 'bar-estimate' },
+                { label: 'Baujahr Max', value: s.max_kw, cls: 'bar-estimate' },
                 { label: 'WP-Empfehlung', value: data.empfehlung_waermepumpe_kw, cls: 'bar-wp' },
             ];
 
-            items.forEach(item => {
-                const row = document.createElement('div');
+            items.forEach(function(item) {
+                var row = document.createElement('div');
                 row.className = 'bar-row';
-                const pct = (item.value / maxVal * 100).toFixed(1);
-                row.innerHTML = `
-                    <span class="bar-label">${item.label}</span>
-                    <div class="bar-track">
-                        <div class="bar-fill ${item.cls}" style="width:${pct}%"></div>
-                    </div>
-                    <span class="bar-value">${item.value} kW</span>
-                `;
+                var pct = (item.value / maxVal * 100).toFixed(1);
+                row.innerHTML = '<span class="bar-label">' + item.label + '</span><div class="bar-track"><div class="bar-fill ' + item.cls + '" style="width:' + pct + '%"></div></div><span class="bar-value">' + item.value + ' kW</span>';
                 container.appendChild(row);
             });
         }
 
-        function drawTempChart(dailyTemps) {
-            const canvas = document.getElementById('temp-chart');
-            const ctx = canvas.getContext('2d');
-            const days = Object.keys(dailyTemps).sort();
-            const temps = days.map(d => dailyTemps[d]);
-
+        function drawTempChart(dailyTemps, heizgrenze) {
+            var canvas = document.getElementById('temp-chart');
+            var ctx = canvas.getContext('2d');
+            var days = Object.keys(dailyTemps).sort();
+            var temps = days.map(function(d) { return dailyTemps[d]; });
             if (temps.length === 0) return;
 
-            const W = canvas.width;
-            const H = canvas.height;
-            const pad = { top: 20, right: 20, bottom: 40, left: 50 };
-            const plotW = W - pad.left - pad.right;
-            const plotH = H - pad.top - pad.bottom;
-
-            const minT = Math.floor(Math.min(...temps) - 2);
-            const maxT = Math.ceil(Math.max(...temps) + 2);
-            const rangeT = maxT - minT || 1;
+            var W = canvas.width, H = canvas.height;
+            var pad = { top: 20, right: 20, bottom: 40, left: 50 };
+            var plotW = W - pad.left - pad.right;
+            var plotH = H - pad.top - pad.bottom;
+            var minT = Math.floor(Math.min.apply(null, temps) - 2);
+            var maxT = Math.ceil(Math.max.apply(null, [Math.max.apply(null, temps), heizgrenze]) + 2);
+            var rangeT = maxT - minT || 1;
 
             ctx.clearRect(0, 0, W, H);
             ctx.fillStyle = '#f8f9fa';
             ctx.fillRect(pad.left, pad.top, plotW, plotH);
 
-            // 0°C-Linie
+            // Heizgrenze-Linie
+            var yHG = pad.top + plotH - ((heizgrenze - minT) / rangeT) * plotH;
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath(); ctx.moveTo(pad.left, yHG); ctx.lineTo(pad.left + plotW, yHG); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#f59e0b';
+            ctx.font = '10px sans-serif';
+            ctx.fillText('HG ' + heizgrenze + '\u00B0C', pad.left + 4, yHG - 4);
+
+            // 0C-Linie
             if (minT <= 0 && maxT >= 0) {
-                const y0 = pad.top + plotH - ((0 - minT) / rangeT) * plotH;
-                ctx.strokeStyle = '#ddd';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                ctx.moveTo(pad.left, y0);
-                ctx.lineTo(pad.left + plotW, y0);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                ctx.fillStyle = '#999';
-                ctx.font = '11px sans-serif';
-                ctx.fillText('0°C', pad.left - 35, y0 + 4);
+                var y0 = pad.top + plotH - ((0 - minT) / rangeT) * plotH;
+                ctx.strokeStyle = '#ddd'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+                ctx.beginPath(); ctx.moveTo(pad.left, y0); ctx.lineTo(pad.left + plotW, y0); ctx.stroke();
+                ctx.setLineDash([]); ctx.fillStyle = '#999'; ctx.font = '10px sans-serif';
+                ctx.fillText('0\u00B0C', pad.left - 30, y0 + 4);
             }
 
             // Y-Achse
-            ctx.fillStyle = '#666';
-            ctx.font = '11px sans-serif';
-            const steps = 5;
-            for (let i = 0; i <= steps; i++) {
-                const val = minT + (rangeT / steps) * i;
-                const y = pad.top + plotH - (i / steps) * plotH;
-                ctx.fillText(val.toFixed(0) + '°', pad.left - 35, y + 4);
+            ctx.fillStyle = '#666'; ctx.font = '11px sans-serif';
+            for (var i = 0; i <= 5; i++) {
+                var val = minT + (rangeT / 5) * i;
+                var y = pad.top + plotH - (i / 5) * plotH;
+                ctx.fillText(val.toFixed(0) + '\u00B0', pad.left - 35, y + 4);
             }
 
-            // Temperaturlinie
-            ctx.strokeStyle = '#2563eb';
-            ctx.lineWidth = 2;
+            // Farbige Punkte (blau=Heiztag, grau=kein Heiztag)
+            temps.forEach(function(t, idx) {
+                var x = pad.left + (idx / (temps.length - 1 || 1)) * plotW;
+                var y = pad.top + plotH - ((t - minT) / rangeT) * plotH;
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = t < heizgrenze ? '#2563eb' : '#d1d5db';
+                ctx.fill();
+            });
+
+            // Linie
+            ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 1.5;
             ctx.beginPath();
-            temps.forEach((t, i) => {
-                const x = pad.left + (i / (temps.length - 1 || 1)) * plotW;
-                const y = pad.top + plotH - ((t - minT) / rangeT) * plotH;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
+            temps.forEach(function(t, idx) {
+                var x = pad.left + (idx / (temps.length - 1 || 1)) * plotW;
+                var y = pad.top + plotH - ((t - minT) / rangeT) * plotH;
+                if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
             });
             ctx.stroke();
 
-            // X-Achse Labels
-            ctx.fillStyle = '#666';
-            ctx.font = '10px sans-serif';
-            const labelEvery = Math.max(1, Math.floor(days.length / 6));
-            days.forEach((d, i) => {
-                if (i % labelEvery === 0 || i === days.length - 1) {
-                    const x = pad.left + (i / (days.length - 1 || 1)) * plotW;
-                    ctx.save();
-                    ctx.translate(x, pad.top + plotH + 10);
-                    ctx.rotate(-0.5);
-                    ctx.fillText(d.slice(5), 0, 0);
-                    ctx.restore();
+            // X-Labels
+            ctx.fillStyle = '#666'; ctx.font = '10px sans-serif';
+            var labelEvery = Math.max(1, Math.floor(days.length / 6));
+            days.forEach(function(d, idx) {
+                if (idx % labelEvery === 0 || idx === days.length - 1) {
+                    var x = pad.left + (idx / (days.length - 1 || 1)) * plotW;
+                    ctx.save(); ctx.translate(x, pad.top + plotH + 10); ctx.rotate(-0.5);
+                    ctx.fillText(d.slice(5), 0, 0); ctx.restore();
                 }
             });
         }

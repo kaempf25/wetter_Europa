@@ -288,6 +288,7 @@ table td:last-child {
 }
 
 .bar-calculated { background: #2563eb; }
+.bar-range { background: #60a5fa; }
 .bar-estimate { background: #94a3b8; }
 .bar-wp { background: #16a34a; }
 
@@ -423,6 +424,121 @@ footer a {
 
 footer a:hover {
     text-decoration: underline;
+}
+
+/* Toggle / Collapsible sections */
+.toggle-header {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+}
+
+.toggle-header:hover {
+    color: #2563eb;
+}
+
+.toggle-icon {
+    font-size: 0.8em;
+    color: #999;
+    transition: transform 0.2s;
+}
+
+.toggle-content {
+    margin-top: 12px;
+}
+
+/* Sensitivity table */
+.sensitivity-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sensitivity-table th {
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #555;
+    padding: 8px 12px;
+    text-align: center;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.sensitivity-table td {
+    padding: 8px 12px;
+    text-align: center;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.9em;
+    width: auto;
+}
+
+.sensitivity-table td:first-child {
+    text-align: left;
+    width: auto;
+    font-weight: normal;
+}
+
+.sensitivity-table td:last-child {
+    text-align: center;
+    font-weight: normal;
+}
+
+.sens-sub {
+    display: block;
+    font-size: 0.8em;
+    color: #888;
+}
+
+/* Warnungen */
+.warn-box {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+    padding: 16px 24px;
+    margin-bottom: 20px;
+}
+
+.warn-box p {
+    font-size: 0.85em;
+    color: #92400e;
+    margin-bottom: 4px;
+}
+
+.warn-box p:last-child {
+    margin-bottom: 0;
+}
+
+/* Range slider */
+input[type="range"] {
+    padding: 0;
+    height: 6px;
+    border: none;
+    border-radius: 3px;
+    background: #e5e7eb;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #2563eb;
+    cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #2563eb;
+    cursor: pointer;
+    border: none;
+}
+
+input[type="range"]:focus {
+    box-shadow: none;
 }
 
 /* Canvas */

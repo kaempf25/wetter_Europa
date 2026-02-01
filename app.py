@@ -1,10 +1,10 @@
 """
 Heizlastrechner - Flask Web-App
 
-Berechnet die Heizlast eines Gebäudes aus:
-- Gasverbrauch über einen beliebigen Zeitraum
-- Wetterdaten der nächsten DWD-Station
-- Wohnfläche und Baujahr
+Berechnet die Heizlast eines Gebaeudes aus:
+- Gasverbrauch ueber einen beliebigen Zeitraum
+- Wetterdaten der naechsten DWD-Station (via Bright Sky)
+- Wohnflaeche, Baujahr, Personenzahl
 """
 
 from datetime import date, datetime
@@ -24,14 +24,14 @@ def index():
 
 @app.route("/api/station", methods=["GET"])
 def api_station():
-    """Nächste Wetterstation für eine PLZ finden."""
+    """Naechste Wetterstation fuer eine PLZ finden."""
     plz = request.args.get("plz", "").strip()
     if not plz or len(plz) != 5:
-        return jsonify({"error": "Bitte eine gültige 5-stellige PLZ eingeben."}), 400
+        return jsonify({"error": "Bitte eine gueltige 5-stellige PLZ eingeben."}), 400
 
     station = geo_mapper.find_nearest_station(plz)
     if not station:
-        return jsonify({"error": f"Keine Wetterstation für PLZ {plz} gefunden."}), 404
+        return jsonify({"error": "Keine Wetterstation fuer PLZ {} gefunden.".format(plz)}), 404
 
     return jsonify(station)
 
@@ -47,46 +47,52 @@ def api_berechnen():
     required = ["plz", "datum_von", "datum_bis", "gasverbrauch", "wohnflaeche", "baujahr"]
     for field in required:
         if field not in data or data[field] in (None, ""):
-            return jsonify({"error": f"Feld '{field}' fehlt."}), 400
+            return jsonify({"error": "Feld '{}' fehlt.".format(field)}), 400
 
     plz = str(data["plz"]).strip().zfill(5)
     datum_von = data["datum_von"]
     datum_bis = data["datum_bis"]
 
-    # Enddatum auf gestern begrenzen (Bright Sky hat keine Zukunftsdaten)
-    gestern = (date.today()).isoformat()
+    # Enddatum auf heute begrenzen
     try:
         dt_von = datetime.strptime(datum_von, "%Y-%m-%d").date()
         dt_bis = datetime.strptime(datum_bis, "%Y-%m-%d").date()
     except ValueError:
-        return jsonify({"error": "Ungültiges Datumsformat."}), 400
+        return jsonify({"error": "Ungueltiges Datumsformat."}), 400
 
     if dt_bis > date.today():
-        datum_bis = gestern
+        datum_bis = date.today().isoformat()
         dt_bis = date.today()
     if dt_von > dt_bis:
         return jsonify({"error": "Das Startdatum liegt nach dem Enddatum."}), 400
     if dt_von > date.today():
-        return jsonify({"error": "Das Startdatum liegt in der Zukunft. Es gibt noch keine Wetterdaten dafür."}), 400
+        return jsonify({"error": "Das Startdatum liegt in der Zukunft."}), 400
 
     try:
         gasverbrauch = float(data["gasverbrauch"])
         wohnflaeche = float(data["wohnflaeche"])
         baujahr = int(data["baujahr"])
     except (ValueError, TypeError):
-        return jsonify({"error": "Ungültige Zahlenwerte."}), 400
+        return jsonify({"error": "Ungueltige Zahlenwerte."}), 400
 
+    # Optionale erweiterte Parameter
+    personen = int(data.get("personen", 0) or 0)
+    t_heizgrenze = float(data.get("heizgrenze", 15.0) or 15.0)
+    brennwert = float(data.get("brennwert", 11.2) or 11.2)
+    zustandszahl = float(data.get("zustandszahl", 0.95) or 0.95)
+    eta = float(data.get("eta", 1.0) or 1.0)
     einheit = data.get("einheit", "kwh")
-    # Umrechnung m³ Gas → kWh (Brennwert ca. 11.2 kWh/m³, Zustandszahl ca. 0.95)
+
+    # Gas-Umrechnung
     if einheit == "m3":
-        gasverbrauch_kwh = gasverbrauch * 11.2 * 0.95
+        gasverbrauch_kwh = gasverbrauch * brennwert * zustandszahl
     else:
         gasverbrauch_kwh = gasverbrauch
 
-    # Nächste Wetterstation finden
+    # Naechste Wetterstation finden
     station = geo_mapper.find_nearest_station(plz)
     if not station:
-        return jsonify({"error": f"Keine Wetterstation für PLZ {plz} gefunden."}), 404
+        return jsonify({"error": "Keine Wetterstation fuer PLZ {} gefunden.".format(plz)}), 404
 
     # Temperaturdaten abrufen
     temp_data = get_temperature_data(
@@ -95,20 +101,24 @@ def api_berechnen():
     if "error" in temp_data:
         return jsonify(temp_data), 500
 
+    daily_temps = temp_data.get("daily_means", {})
+
     # Heizlast berechnen
     result = berechne_heizlast(
         gasverbrauch_kwh=gasverbrauch_kwh,
-        tage=temp_data["num_days"],
-        mittlere_aussentemperatur=temp_data["avg_temperature"],
+        daily_temps=daily_temps,
         plz=plz,
         wohnflaeche=wohnflaeche,
         baujahr=baujahr,
+        personen=personen,
+        t_heizgrenze=t_heizgrenze,
+        eta=eta,
     )
 
     if "error" in result:
         return jsonify(result), 400
 
-    # Zusätzliche Infos anhängen
+    # Zusaetzliche Infos anhaengen
     result["station"] = station
     result["temperatur"] = {
         "mittelwert": temp_data["avg_temperature"],
@@ -121,10 +131,17 @@ def api_berechnen():
         "datum_von": datum_von,
         "datum_bis": datum_bis,
         "gasverbrauch_kwh": round(gasverbrauch_kwh, 1),
+        "gasverbrauch_roh": gasverbrauch,
+        "einheit": einheit,
         "wohnflaeche": wohnflaeche,
         "baujahr": baujahr,
+        "personen": personen,
+        "brennwert": brennwert,
+        "zustandszahl": zustandszahl,
+        "eta": eta,
+        "heizgrenze": t_heizgrenze,
     }
-    result["daily_temps"] = temp_data.get("daily_means", {})
+    result["daily_temps"] = daily_temps
 
     return jsonify(result)
 
