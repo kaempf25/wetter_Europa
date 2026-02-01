@@ -23,9 +23,17 @@ header {
 }
 
 .logo {
-    max-width: 320px;
+    max-width: 340px;
     height: auto;
     margin-bottom: 16px;
+}
+
+.intro-text {
+    font-size: 0.9em;
+    color: #555;
+    max-width: 600px;
+    margin: 8px auto 0;
+    line-height: 1.5;
 }
 
 header h1 {

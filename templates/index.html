@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heizlastrechner - Dr.-Ing. Andreas K&auml;mpf energy consulting</title>
+    <title>Heizlastrechner - AK Energy Consulting</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -12,6 +12,7 @@
             <a href="/"><img src="/static/logo.svg" alt="Dr.-Ing. Andreas K&auml;mpf energy consulting" class="logo"></a>
             <h1>Heizlastrechner</h1>
             <p class="subtitle">Heizlast aus tats&auml;chlichem Gasverbrauch und DWD-Wetterdaten absch&auml;tzen</p>
+            <p class="intro-text">Dieser Rechner ermittelt die Heizlast Ihres Geb&auml;udes aus dem realen Gasverbrauch und den gemessenen Au&szlig;entemperaturen der DWD-Wetterstation in Ihrer N&auml;he. Das Ergebnis zeigt, welche Heizleistung am k&auml;ltesten Tag des Jahres ben&ouml;tigt wird &ndash; wichtig f&uuml;r die Auslegung einer W&auml;rmepumpe.</p>
         </header>
 
         <form id="heizlast-form">
@@ -23,22 +24,22 @@
                         <label for="plz">Postleitzahl</label>
                         <input type="text" id="plz" name="plz" placeholder="z.B. 70173" maxlength="5" pattern="[0-9]{5}" required>
                         <span class="hint" id="station-hint"></span>
-                        <span class="field-help">Bestimmt die n&auml;chste DWD-Wetterstation und die Norm-Au&szlig;entemperatur f&uuml;r deinen Standort.</span>
+                        <span class="field-help">Anhand der PLZ wird automatisch die n&auml;chste DWD-Wetterstation ausgew&auml;hlt und die sog. Norm-Au&szlig;entemperatur (der statistische Extremwert f&uuml;r Ihre Region) bestimmt.</span>
                     </div>
                     <div class="form-group">
                         <label for="wohnflaeche">Wohnfl&auml;che (m&sup2;)</label>
                         <input type="number" id="wohnflaeche" name="wohnflaeche" placeholder="z.B. 120" min="10" max="2000" required>
-                        <span class="field-help">Beheizte Wohnfl&auml;che (Energieausweis, Mietvertrag).</span>
+                        <span class="field-help">Die beheizte Wohnfl&auml;che in Quadratmetern. Steht im Energieausweis, Mietvertrag oder Grundrissplan. Wird f&uuml;r die spezifische Heizlast (W/m&sup2;) und den Vergleich mit Richtwerten ben&ouml;tigt.</span>
                     </div>
                     <div class="form-group">
                         <label for="baujahr">Baujahr</label>
                         <input type="number" id="baujahr" name="baujahr" placeholder="z.B. 1975" min="1800" max="2026" required>
-                        <span class="field-help">F&uuml;r den Vergleich mit typischen D&auml;mmstandards.</span>
+                        <span class="field-help">Das Baujahr dient dem Vergleich mit typischen Heizlast-Richtwerten f&uuml;r verschiedene D&auml;mmstandards (z.&nbsp;B. Altbau vor 1978, WSchVO 1995, EnEV 2014). Es beeinflusst nicht die eigentliche Berechnung aus Ihrem Verbrauch.</span>
                     </div>
                     <div class="form-group">
                         <label for="personen">Personen im Haushalt</label>
                         <input type="number" id="personen" name="personen" placeholder="z.B. 3" min="0" max="20" value="">
-                        <span class="field-help">Verbessert die Warmwasser-Abtrennung (~3 kWh/Person/Tag). Leer = automatisch.</span>
+                        <span class="field-help">Wird verwendet, um den Warmwasserverbrauch genauer abzutrennen (Richtwert: ~3 kWh pro Person und Tag). Wenn Sie das Feld leer lassen, wird der Warmwasseranteil automatisch aus den Nicht-Heiztagen oder pauschal gesch&auml;tzt.</span>
                     </div>
                 </div>
             </div>
@@ -46,7 +47,7 @@
             <!-- Verbrauchsdaten -->
             <div class="form-section">
                 <h2>Verbrauchsdaten</h2>
-                <p class="info">Am besten eignen sich kalte Winterwochen (unter 5&deg;C). Mindestens 7 Tage f&uuml;r zuverl&auml;ssige Ergebnisse.</p>
+                <p class="info">Am besten eignen sich kalte Winterwochen (unter 5&deg;C Tagesmittel). Mindestens 7 Tage f&uuml;r zuverl&auml;ssige Ergebnisse. Lesen Sie den Z&auml;hlerstand zu Beginn und Ende des Zeitraums ab.</p>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="datum_von">Von</label>
@@ -62,7 +63,7 @@
                     <div class="form-group">
                         <label for="gasverbrauch">Gasverbrauch</label>
                         <input type="number" id="gasverbrauch" name="gasverbrauch" placeholder="z.B. 150" min="0" step="0.1" required>
-                        <span class="field-help">Differenz der Gasz&auml;hler-St&auml;nde (Anfang &minus; Ende).</span>
+                        <span class="field-help">Differenz der Z&auml;hlerst&auml;nde: Endstand minus Anfangsstand. Bei kWh-Eingabe k&ouml;nnen Sie den Verbrauch direkt aus Ihrer Rechnung &uuml;bernehmen. Bei m&sup3;-Eingabe lesen Sie den Gasz&auml;hler direkt ab.</span>
                     </div>
                     <div class="form-group">
                         <label for="einheit">Einheit</label>
@@ -70,7 +71,7 @@
                             <option value="kwh">kWh (laut Rechnung)</option>
                             <option value="m3">m&sup3; (Gasz&auml;hler)</option>
                         </select>
-                        <span class="field-help">kWh bevorzugt (exakter). m&sup3; wird mit Brennwert umgerechnet.</span>
+                        <span class="field-help"><strong>kWh</strong> ist genauer, da bereits umgerechnet (steht auf der Jahresabrechnung). <strong>m&sup3;</strong> k&ouml;nnen Sie direkt vom Gasz&auml;hler ablesen &ndash; die Umrechnung in kWh erfolgt dann automatisch &uuml;ber Brennwert und Zustandszahl.</span>
                     </div>
                 </div>
             </div>
@@ -79,17 +80,17 @@
             <div class="form-section collapsible">
                 <h2 class="toggle-header" onclick="toggleSection(this)">Erweiterte Einstellungen <span class="toggle-icon">&#9654;</span></h2>
                 <div class="toggle-content hidden">
-                    <p class="info">Diese Werte findest du auf deiner Gasrechnung. Bei kWh-Eingabe sind Brennwert und Zustandszahl bereits enthalten.</p>
+                    <p class="info">Diese Werte finden Sie auf Ihrer Gasrechnung. <strong>Bei kWh-Eingabe</strong> sind Brennwert und Zustandszahl bereits vom Versorger eingerechnet und m&uuml;ssen hier nicht ge&auml;ndert werden. <strong>Bei m&sup3;-Eingabe</strong> werden diese Werte f&uuml;r die Umrechnung in kWh ben&ouml;tigt.</p>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="brennwert">Brennwert H<sub>s</sub> (kWh/m&sup3;)</label>
                             <input type="number" id="brennwert" name="brennwert" value="11.2" min="8" max="14" step="0.1">
-                            <span class="field-help">Steht auf der Gasrechnung. Erdgas H: ~11,2. Erdgas L: ~9,8.</span>
+                            <span class="field-help">Der <strong>Brennwert</strong> (H<sub>s</sub>) gibt an, wie viel Energie in einem Kubikmeter Gas steckt. Er h&auml;ngt von der Gasqualit&auml;t ab: <em>Erdgas H</em> (high, aus Nordsee/Russland): ca. 11,2 kWh/m&sup3;. <em>Erdgas L</em> (low, aus den Niederlanden): ca. 9,8 kWh/m&sup3;. Den genauen Wert finden Sie auf Ihrer Gasrechnung.</span>
                         </div>
                         <div class="form-group">
                             <label for="zustandszahl">Zustandszahl z</label>
                             <input type="number" id="zustandszahl" name="zustandszahl" value="0.95" min="0.8" max="1.1" step="0.01">
-                            <span class="field-help">Steht auf der Gasrechnung. Typisch: 0,90&ndash;0,98.</span>
+                            <span class="field-help">Die <strong>Zustandszahl</strong> (z) korrigiert den Unterschied zwischen dem Normzustand (0&deg;C, 1013 mbar) und den tats&auml;chlichen Bedingungen an Ihrem Gasz&auml;hler (H&ouml;henlage, Temperatur, Druck). Ein Gasz&auml;hler misst Volumen &ndash; aber ein Kubikmeter Gas auf 500&nbsp;m H&ouml;he enth&auml;lt weniger Energie als auf Meeresh&ouml;he. Die Zustandszahl gleicht das aus. Typisch: 0,90&ndash;0,98. Steht auf Ihrer Gasrechnung.</span>
                         </div>
                     </div>
                     <div class="form-row">
@@ -101,13 +102,13 @@
                                 <option value="0.88">Niedertemperaturkessel (~88%)</option>
                                 <option value="0.80">Standardkessel (~80%)</option>
                             </select>
-                            <span class="field-help">Wie effizient wandelt deine Heizung Gas in W&auml;rme um? Bei kWh laut Rechnung: &bdquo;bereits Nutzw&auml;rme&ldquo;.</span>
+                            <span class="field-help">Der <strong>Anlagennutzungsgrad</strong> (&eta;) beschreibt, wie viel Prozent der Gasenergie tats&auml;chlich als W&auml;rme im Haus ankommt. Ein <em>Brennwertkessel</em> (~95%) nutzt auch die Abgasw&auml;rme. Ein &auml;lterer <em>Standardkessel</em> (~80%) verliert mehr &uuml;ber Abgase und Abstrahlung. Wenn Sie kWh laut Rechnung eingeben, ist die Umwandlung bereits ber&uuml;cksichtigt &rarr; w&auml;hlen Sie &bdquo;bereits Nutzw&auml;rme&ldquo;.</span>
                         </div>
                         <div class="form-group">
                             <label for="heizgrenze">Heizgrenztemperatur (&deg;C)</label>
                             <input type="range" id="heizgrenze" name="heizgrenze" min="10" max="18" value="15" step="1">
                             <span id="heizgrenze-label" style="font-weight:600;font-size:0.9em;">15&deg;C</span>
-                            <span class="field-help">Altbau: 15&ndash;16&deg;C. Gut ged&auml;mmt: 12&ndash;14&deg;C. Tage &uuml;ber dieser Grenze werden nicht gewertet.</span>
+                            <span class="field-help">Die <strong>Heizgrenztemperatur</strong> ist die Au&szlig;entemperatur, ab der nicht mehr geheizt werden muss (innere W&auml;rmegewinne durch Sonne, Ger&auml;te und Personen reichen aus). <em>Altbau</em> (schlecht ged&auml;mmt): 15&ndash;16&deg;C. <em>Gut ged&auml;mmt</em>: 12&ndash;14&deg;C. Tage &uuml;ber dieser Temperatur werden als &bdquo;Nicht-Heiztage&ldquo; gewertet.</span>
                         </div>
                     </div>
                 </div>
@@ -287,7 +288,7 @@
 
         <footer>
             <img src="/static/logo.svg" alt="Dr.-Ing. Andreas K&auml;mpf energy consulting" class="footer-logo">
-            <p>Heizlastrechner | Wetterdaten: <a href="https://www.dwd.de/" target="_blank">DWD</a> via <a href="https://brightsky.dev/" target="_blank">Bright Sky API</a></p>
+            <p>Heizlastrechner &ndash; AK Energy Consulting | Wetterdaten: <a href="https://www.dwd.de/" target="_blank">DWD</a> via <a href="https://brightsky.dev/" target="_blank">Bright Sky API</a></p>
         </footer>
     </div>
 
