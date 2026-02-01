@@ -7,6 +7,8 @@ Berechnet die Heizlast eines Gebäudes aus:
 - Wohnfläche und Baujahr
 """
 
+from datetime import date, datetime
+
 from flask import Flask, render_template, request, jsonify
 from utils.geo import geo_mapper
 from utils.dwd import get_temperature_data
@@ -50,6 +52,22 @@ def api_berechnen():
     plz = str(data["plz"]).strip().zfill(5)
     datum_von = data["datum_von"]
     datum_bis = data["datum_bis"]
+
+    # Enddatum auf gestern begrenzen (Bright Sky hat keine Zukunftsdaten)
+    gestern = (date.today()).isoformat()
+    try:
+        dt_von = datetime.strptime(datum_von, "%Y-%m-%d").date()
+        dt_bis = datetime.strptime(datum_bis, "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({"error": "Ungültiges Datumsformat."}), 400
+
+    if dt_bis > date.today():
+        datum_bis = gestern
+        dt_bis = date.today()
+    if dt_von > dt_bis:
+        return jsonify({"error": "Das Startdatum liegt nach dem Enddatum."}), 400
+    if dt_von > date.today():
+        return jsonify({"error": "Das Startdatum liegt in der Zukunft. Es gibt noch keine Wetterdaten dafür."}), 400
 
     try:
         gasverbrauch = float(data["gasverbrauch"])

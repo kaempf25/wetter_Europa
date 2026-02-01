@@ -44,6 +44,7 @@
                     <div class="form-group">
                         <label for="datum_bis">Bis</label>
                         <input type="date" id="datum_bis" name="datum_bis" required>
+                        <span class="hint" id="datum-hint"></span>
                     </div>
                 </div>
                 <div class="form-row">
@@ -139,6 +140,22 @@
     </div>
 
     <script>
+        // Datumsfelder auf heute begrenzen
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('datum_von').setAttribute('max', today);
+        document.getElementById('datum_bis').setAttribute('max', today);
+
+        document.getElementById('datum_bis').addEventListener('change', function() {
+            const hint = document.getElementById('datum-hint');
+            if (this.value > today) {
+                this.value = today;
+                hint.textContent = 'Enddatum auf heute gesetzt (keine Zukunftsdaten verfügbar)';
+                hint.className = 'hint error';
+            } else {
+                hint.textContent = '';
+            }
+        });
+
         // PLZ → Station-Lookup bei Eingabe
         let stationTimeout;
         document.getElementById('plz').addEventListener('input', function() {
