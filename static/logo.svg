@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 80">
+  <!-- A/K Icon -->
+  <polygon points="30,70 50,10 60,10 45,50 55,50 60,35 70,35 55,70" fill="#6b7280"/>
+  <polygon points="60,10 70,10 90,70 80,70 75,55 55,70" fill="#22c55e"/>
+  <polygon points="45,50 55,50 60,35 70,35 80,70 55,70" fill="#22c55e" opacity="0.85"/>
+  <!-- Trennlinie -->
+  <line x1="100" y1="8" x2="100" y2="72" stroke="#22c55e" stroke-width="3"/>
+  <!-- Text oben -->
+  <text x="112" y="32" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#333">Dr.-Ing. Andreas Kämpf</text>
+  <!-- Text unten -->
+  <text x="112" y="60" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#22c55e">energy consulting</text>
+</svg>

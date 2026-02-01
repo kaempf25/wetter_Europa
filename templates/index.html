@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Heizlastrechner</title>
+    <title>Heizlastrechner - Dr.-Ing. Andreas Kämpf energy consulting</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
         <header>
+            <a href="/">
+                <img src="/static/logo.svg" alt="Dr.-Ing. Andreas Kämpf energy consulting" class="logo">
+            </a>
             <h1>Heizlastrechner</h1>
             <p class="subtitle">Berechne deine Heizlast aus dem tatsächlichen Gasverbrauch und Wetterdaten des DWD</p>
         </header>
@@ -21,36 +24,42 @@
                         <label for="plz">Postleitzahl</label>
                         <input type="text" id="plz" name="plz" placeholder="z.B. 70173" maxlength="5" pattern="[0-9]{5}" required>
                         <span class="hint" id="station-hint"></span>
+                        <span class="field-help">Anhand der PLZ wird die nächstgelegene DWD-Wetterstation ermittelt, um die realen Außentemperaturen für deinen Standort abzurufen.</span>
                     </div>
                     <div class="form-group">
                         <label for="wohnflaeche">Wohnfläche (m²)</label>
                         <input type="number" id="wohnflaeche" name="wohnflaeche" placeholder="z.B. 120" min="10" max="2000" required>
+                        <span class="field-help">Die beheizte Wohnfläche deines Gebäudes. Findest du im Energieausweis, Mietvertrag oder Grundriss.</span>
                     </div>
                     <div class="form-group">
                         <label for="baujahr">Baujahr</label>
                         <input type="number" id="baujahr" name="baujahr" placeholder="z.B. 1975" min="1800" max="2026" required>
+                        <span class="field-help">Das Baujahr bestimmt den typischen Dämmstandard. Wird für den Vergleichswert herangezogen.</span>
                     </div>
                 </div>
             </div>
 
             <div class="form-section">
                 <h2>Verbrauchsdaten</h2>
-                <p class="info">Gib deinen Gasverbrauch für einen beliebigen Zeitraum ein. Am besten eignen sich kalte Wochen im Winter.</p>
+                <p class="info">Gib deinen Gasverbrauch für einen beliebigen Zeitraum ein. Am besten eignen sich kalte Wochen im Winter (unter 5°C Außentemperatur), da die Extrapolation dann am genauesten ist.</p>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="datum_von">Von</label>
                         <input type="date" id="datum_von" name="datum_von" required>
+                        <span class="field-help">Startdatum der Gaszähler-Ablesung.</span>
                     </div>
                     <div class="form-group">
                         <label for="datum_bis">Bis</label>
                         <input type="date" id="datum_bis" name="datum_bis" required>
                         <span class="hint" id="datum-hint"></span>
+                        <span class="field-help">Enddatum der Ablesung. Muss in der Vergangenheit liegen.</span>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="gasverbrauch">Gasverbrauch</label>
-                        <input type="number" id="gasverbrauch" name="gasverbrauch" placeholder="z.B. 1500" min="0" step="0.1" required>
+                        <input type="number" id="gasverbrauch" name="gasverbrauch" placeholder="z.B. 150" min="0" step="0.1" required>
+                        <span class="field-help">Differenz der Gaszähler-Stände zwischen Start- und Enddatum. Ablesen am Gaszähler im Keller.</span>
                     </div>
                     <div class="form-group">
                         <label for="einheit">Einheit</label>
@@ -58,6 +67,7 @@
                             <option value="kwh">kWh</option>
                             <option value="m3">m³ (Gaszähler)</option>
                         </select>
+                        <span class="field-help">Die meisten Gaszähler zeigen m³ an. kWh findest du auf der Gasrechnung.</span>
                     </div>
                 </div>
             </div>
@@ -97,6 +107,25 @@
                 </div>
             </div>
 
+            <!-- Erklärung der Ergebnis-Karten -->
+            <div class="detail-section ergebnis-erklaerung">
+                <h3>Was bedeuten diese Werte?</h3>
+                <div class="erklaerung-grid">
+                    <div class="erklaerung-item">
+                        <strong>Norm-Heizlast (kW)</strong>
+                        <p>Die maximale Heizleistung, die dein Gebäude am kältesten Tag des Jahres (Norm-Außentemperatur) benötigt, um 20°C Innentemperatur zu halten. Das ist der zentrale Wert für die Auslegung einer neuen Heizung.</p>
+                    </div>
+                    <div class="erklaerung-item">
+                        <strong>Spezifische Heizlast (W/m²)</strong>
+                        <p>Die Heizlast pro Quadratmeter Wohnfläche. Damit lässt sich dein Gebäude mit typischen Werten für das Baujahr vergleichen. Niedrige Werte bedeuten gute Dämmung.</p>
+                    </div>
+                    <div class="erklaerung-item">
+                        <strong>Wärmepumpe (kW)</strong>
+                        <p>Empfohlene Mindestleistung der Wärmepumpe. Enthält 10% Sicherheitszuschlag gegenüber der berechneten Norm-Heizlast, um auch bei extremer Kälte ausreichend Leistung zu haben.</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="detail-section">
                 <h3>Wetterdaten</h3>
                 <table>
@@ -127,16 +156,72 @@
                 <canvas id="temp-chart" width="700" height="250"></canvas>
             </div>
 
+            <!-- Detaillierter Berechnungsweg -->
+            <div class="detail-section berechnungsweg">
+                <h3>Berechnungsweg im Detail</h3>
+                <p class="info">So wurde die Heizlast Schritt für Schritt berechnet:</p>
+
+                <div class="rechenschritt">
+                    <h4>Schritt 1: Gasverbrauch in Heizenergie umrechnen</h4>
+                    <p id="bw-step1" class="formel"></p>
+                    <p class="erklaerung-text">Vom gemessenen Gasverbrauch werden pauschal 12% für Warmwasser abgezogen, da dieses ganzjährig anfällt und nicht zur Raumheizung beiträgt. Bei der Eingabe in m³ wird zusätzlich mit dem Brennwert (11,2 kWh/m³) und der Zustandszahl (0,95) umgerechnet.</p>
+                </div>
+
+                <div class="rechenschritt">
+                    <h4>Schritt 2: Mittlere Heizleistung im Messzeitraum</h4>
+                    <p id="bw-step2" class="formel"></p>
+                    <p class="erklaerung-text">Die Heizenergie wird durch die Stunden im Messzeitraum geteilt. Das ergibt die durchschnittliche Heizleistung, die im Messzeitraum benötigt wurde.</p>
+                </div>
+
+                <div class="rechenschritt">
+                    <h4>Schritt 3: Extrapolation auf die Norm-Außentemperatur</h4>
+                    <p id="bw-step3" class="formel"></p>
+                    <p class="erklaerung-text">Die Heizleistung ist proportional zur Temperaturdifferenz zwischen Innen- und Außentemperatur. Je kälter es draußen ist, desto mehr muss geheizt werden. Die Norm-Außentemperatur ist die statistisch kälteste Temperatur, die am Standort zu erwarten ist (nach DIN/TS 12831). Durch das Verhältnis der Temperaturdifferenzen wird die gemessene Leistung auf diesen Extremfall hochgerechnet.</p>
+                </div>
+
+                <div class="rechenschritt">
+                    <h4>Schritt 4: Spezifische Heizlast</h4>
+                    <p id="bw-step4" class="formel"></p>
+                    <p class="erklaerung-text">Die Heizlast pro Quadratmeter erlaubt den Vergleich mit Richtwerten für das Baujahr. Typische Werte: Altbau (vor 1978): 100-170 W/m², Neubau (nach 2002): 25-60 W/m².</p>
+                </div>
+
+                <div class="rechenschritt">
+                    <h4>Schritt 5: Wärmepumpen-Empfehlung</h4>
+                    <p id="bw-step5" class="formel"></p>
+                    <p class="erklaerung-text">Auf die berechnete Norm-Heizlast werden 10% Sicherheitszuschlag aufgeschlagen. Damit ist die Wärmepumpe auch bei Extremwetter und Aufheizbetrieb (z.B. nach Nachtabsenkung) ausreichend dimensioniert.</p>
+                </div>
+            </div>
+
+            <!-- Zugrundeliegende Annahmen -->
+            <div class="detail-section">
+                <h3>Zugrundeliegende Annahmen</h3>
+                <table>
+                    <tr><td>Innentemperatur (T<sub>innen</sub>)</td><td>20 °C</td></tr>
+                    <tr><td>Warmwasseranteil</td><td>12 % des Gasverbrauchs</td></tr>
+                    <tr><td>Kesselwirkungsgrad (bei kWh-Eingabe)</td><td>bereits enthalten</td></tr>
+                    <tr><td>Brennwert Erdgas H (bei m³-Eingabe)</td><td>11,2 kWh/m³</td></tr>
+                    <tr><td>Zustandszahl (bei m³-Eingabe)</td><td>0,95</td></tr>
+                    <tr><td>Sicherheitszuschlag Wärmepumpe</td><td>10 %</td></tr>
+                    <tr><td>Norm-Außentemperatur</td><td id="res-norm-temp2">nach DIN/TS 12831</td></tr>
+                </table>
+            </div>
+
             <div class="hinweis">
-                <h3>Hinweise</h3>
+                <h3>Hinweise zur Genauigkeit</h3>
                 <ul>
-                    <li>Die Berechnung basiert auf der linearen Extrapolation des Verbrauchs auf die Norm-Außentemperatur.</li>
-                    <li>Für genauere Ergebnisse solltest du mehrere Zeiträume im Winter auswerten.</li>
-                    <li>Der Warmwasseranteil wird pauschal mit 12% angenommen.</li>
-                    <li>Bei der Umrechnung von m³ Gas wird ein Brennwert von 11,2 kWh/m³ angenommen.</li>
+                    <li><strong>Messzeitraum:</strong> Wähle am besten kalte Winterwochen (unter 5°C Tagesmittel). Je kälter der Messzeitraum, desto geringer der Extrapolationsfehler.</li>
+                    <li><strong>Kurze Zeiträume</strong> (1-2 Tage) können durch Speichereffekte im Gebäude ungenau sein. Empfohlen sind mindestens 7 Tage.</li>
+                    <li><strong>Warmwasser:</strong> Der pauschale Abzug von 12% ist ein Durchschnittswert. Bei Durchlauferhitzer (elektr. Warmwasser) auf 0% setzen, indem du den Gasverbrauch manuell korrigierst.</li>
+                    <li><strong>Mehrere Messungen:</strong> Für mehr Genauigkeit kannst du verschiedene Zeiträume auswerten und die Ergebnisse vergleichen.</li>
+                    <li><strong>Sanierungen:</strong> Das Baujahr dient nur dem Vergleich. Wurde das Gebäude gedämmt, weicht der berechnete Wert (korrekt) vom Baujahr-Richtwert ab.</li>
                 </ul>
             </div>
         </div>
+
+        <footer>
+            <img src="/static/logo.svg" alt="Dr.-Ing. Andreas Kämpf energy consulting" class="footer-logo">
+            <p>Heizlastrechner | Wetterdaten: <a href="https://www.dwd.de/" target="_blank">Deutscher Wetterdienst (DWD)</a> via <a href="https://brightsky.dev/" target="_blank">Bright Sky API</a></p>
+        </footer>
     </div>
 
     <script>
@@ -219,7 +304,7 @@
                     document.getElementById('error-text').textContent = data.error;
                     errorDiv.classList.remove('hidden');
                 } else {
-                    displayResults(data);
+                    displayResults(data, payload);
                     results.classList.remove('hidden');
                 }
             } catch (err) {
@@ -231,7 +316,7 @@
             }
         });
 
-        function displayResults(data) {
+        function displayResults(data, payload) {
             document.getElementById('res-heizlast').textContent = data.heizlast_kw;
             document.getElementById('res-norm-temp').textContent = data.norm_aussentemperatur;
             document.getElementById('res-spezifisch').textContent = data.heizlast_spezifisch_w_m2;
@@ -247,14 +332,66 @@
             document.getElementById('res-heizenergie').textContent = data.heizenergie_kwh + ' kWh';
             document.getElementById('res-mittlere-leistung').textContent = data.mittlere_heizleistung_kw + ' kW';
 
+            // Norm-Temperatur in Annahmen
+            document.getElementById('res-norm-temp2').textContent =
+                data.norm_aussentemperatur + ' °C (PLZ ' + data.eingaben.plz + ')';
+
             // Vergleich Baujahr-Schätzung
             const s = data.schaetzung_baujahr;
             document.getElementById('res-schaetzung').textContent =
                 `Typisch für Baujahr ${data.eingaben.baujahr}: ${s.min_kw} - ${s.max_kw} kW ` +
                 `(${s.spezifisch_min} - ${s.spezifisch_max} W/m²)`;
 
+            // Berechnungsweg befüllen
+            fillBerechnungsweg(data, payload);
+
             drawBarChart(data);
             drawTempChart(data.daily_temps);
+        }
+
+        function fillBerechnungsweg(data, payload) {
+            const gasKwh = data.eingaben.gasverbrauch_kwh;
+            const qHeiz = data.heizenergie_kwh;
+            const tage = data.temperatur.tage;
+            const stunden = tage * 24;
+            const pMess = data.mittlere_heizleistung_kw;
+            const tAvg = data.temperatur.mittelwert;
+            const tNorm = data.norm_aussentemperatur;
+            const tInnen = 20;
+            const heizlast = data.heizlast_kw;
+            const spez = data.heizlast_spezifisch_w_m2;
+            const wp = data.empfehlung_waermepumpe_kw;
+            const wf = data.eingaben.wohnflaeche;
+
+            // Step 1
+            let step1;
+            if (payload.einheit === 'm3') {
+                step1 = `Gasverbrauch: ${payload.gasverbrauch} m³ × 11,2 kWh/m³ × 0,95 = ${gasKwh} kWh\n` +
+                         `Heizenergie: ${gasKwh} kWh × (1 − 0,12) = ${qHeiz} kWh`;
+            } else {
+                step1 = `Heizenergie: ${gasKwh} kWh × (1 − 0,12) = ${qHeiz} kWh`;
+            }
+            document.getElementById('bw-step1').textContent = step1;
+
+            // Step 2
+            document.getElementById('bw-step2').textContent =
+                `P_mittel = ${qHeiz} kWh ÷ (${tage} Tage × 24 h) = ${qHeiz} ÷ ${stunden} = ${pMess} kW`;
+
+            // Step 3
+            const deltaMess = (tInnen - tAvg).toFixed(1);
+            const deltaNorm = (tInnen - tNorm).toFixed(1);
+            document.getElementById('bw-step3').textContent =
+                `Heizlast = ${pMess} kW × (${tInnen}°C − (${tNorm}°C)) ÷ (${tInnen}°C − ${tAvg}°C)\n` +
+                `         = ${pMess} kW × ${deltaNorm} ÷ ${deltaMess}\n` +
+                `         = ${heizlast} kW`;
+
+            // Step 4
+            document.getElementById('bw-step4').textContent =
+                `Spezifisch = ${heizlast} kW × 1000 ÷ ${wf} m² = ${spez} W/m²`;
+
+            // Step 5
+            document.getElementById('bw-step5').textContent =
+                `WP-Empfehlung = ${heizlast} kW × 1,10 = ${wp} kW`;
         }
 
         function drawBarChart(data) {

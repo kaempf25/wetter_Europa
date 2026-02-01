@@ -22,6 +22,12 @@ header {
     padding: 30px 0 20px;
 }
 
+.logo {
+    max-width: 320px;
+    height: auto;
+    margin-bottom: 16px;
+}
+
 header h1 {
     font-size: 2em;
     color: #1a1a2e;
@@ -30,6 +36,15 @@ header h1 {
 .subtitle {
     color: #666;
     margin-top: 8px;
+}
+
+/* Field help texts */
+.field-help {
+    display: block;
+    font-size: 0.75em;
+    color: #888;
+    margin-top: 4px;
+    line-height: 1.4;
 }
 
 /* Form */
@@ -308,6 +323,108 @@ table td:last-child {
     margin-bottom: 4px;
 }
 
+/* Erklärungen */
+.ergebnis-erklaerung {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.erklaerung-grid {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.erklaerung-item {
+    flex: 1;
+    min-width: 200px;
+}
+
+.erklaerung-item strong {
+    display: block;
+    color: #333;
+    margin-bottom: 4px;
+    font-size: 0.9em;
+}
+
+.erklaerung-item p {
+    font-size: 0.82em;
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Berechnungsweg */
+.berechnungsweg {
+    background: #fafbfc;
+    border: 1px solid #e2e8f0;
+}
+
+.rechenschritt {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #eef0f3;
+}
+
+.rechenschritt:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.rechenschritt h4 {
+    font-size: 0.9em;
+    color: #2563eb;
+    margin-bottom: 8px;
+}
+
+.formel {
+    font-family: 'Courier New', Courier, monospace;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.85em;
+    color: #1a1a2e;
+    white-space: pre-wrap;
+    line-height: 1.6;
+    margin-bottom: 8px;
+}
+
+.erklaerung-text {
+    font-size: 0.8em;
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 30px 0 20px;
+    margin-top: 30px;
+    border-top: 1px solid #ddd;
+}
+
+.footer-logo {
+    max-width: 200px;
+    height: auto;
+    margin-bottom: 10px;
+    opacity: 0.7;
+}
+
+footer p {
+    font-size: 0.8em;
+    color: #999;
+}
+
+footer a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
 /* Canvas */
 #temp-chart {
     width: 100%;
@@ -321,4 +438,6 @@ table td:last-child {
     .result-cards { flex-direction: column; }
     .card { min-width: 100%; }
     header h1 { font-size: 1.5em; }
+    .logo { max-width: 240px; }
+    .erklaerung-grid { flex-direction: column; }
 }
