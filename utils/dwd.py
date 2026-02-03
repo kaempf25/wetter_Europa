@@ -42,7 +42,7 @@ def get_temperature_data(lat: float, lon: float, date_from: str, date_to: str) -
             "lat": lat,
             "lon": lon,
             "date": current.strftime("%Y-%m-%dT00:00:00"),
-            "last_date": (chunk_end + timedelta(days=1)).strftime("%Y-%m-%dT00:00:00"),
+            "last_date": chunk_end.strftime("%Y-%m-%dT23:59:59"),
         }
 
         try:
