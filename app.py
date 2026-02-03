@@ -53,20 +53,35 @@ def api_berechnen():
     datum_von = data["datum_von"]
     datum_bis = data["datum_bis"]
 
-    # Enddatum auf heute begrenzen
+    # Datetime mit Uhrzeit parsen (Format: "YYYY-MM-DDTHH:MM" oder "YYYY-MM-DD")
     try:
-        dt_von = datetime.strptime(datum_von, "%Y-%m-%d").date()
-        dt_bis = datetime.strptime(datum_bis, "%Y-%m-%d").date()
+        if "T" in datum_von:
+            dt_von = datetime.strptime(datum_von, "%Y-%m-%dT%H:%M")
+        else:
+            dt_von = datetime.strptime(datum_von, "%Y-%m-%d")
+        if "T" in datum_bis:
+            dt_bis = datetime.strptime(datum_bis, "%Y-%m-%dT%H:%M")
+        else:
+            dt_bis = datetime.strptime(datum_bis, "%Y-%m-%d")
     except ValueError:
         return jsonify({"error": "Ungueltiges Datumsformat."}), 400
 
-    if dt_bis > date.today():
-        datum_bis = date.today().isoformat()
-        dt_bis = date.today()
+    now = datetime.now()
+    if dt_bis > now:
+        dt_bis = now
     if dt_von > dt_bis:
         return jsonify({"error": "Das Startdatum liegt nach dem Enddatum."}), 400
-    if dt_von > date.today():
+    if dt_von > now:
         return jsonify({"error": "Das Startdatum liegt in der Zukunft."}), 400
+
+    # Exakte Messdauer in Tagen (Dezimalwert)
+    messdauer_tage = (dt_bis - dt_von).total_seconds() / 86400.0
+    if messdauer_tage <= 0:
+        return jsonify({"error": "Der Messzeitraum muss groesser als 0 sein."}), 400
+
+    # Datum-only Strings fuer die DWD-API (braucht nur Tage)
+    datum_von_api = dt_von.strftime("%Y-%m-%d")
+    datum_bis_api = dt_bis.strftime("%Y-%m-%d")
 
     try:
         gasverbrauch = float(data["gasverbrauch"])
@@ -94,9 +109,9 @@ def api_berechnen():
     if not station:
         return jsonify({"error": "Keine Wetterstation fuer PLZ {} gefunden.".format(plz)}), 404
 
-    # Temperaturdaten abrufen
+    # Temperaturdaten abrufen (API braucht nur Datum ohne Uhrzeit)
     temp_data = get_temperature_data(
-        station["lat"], station["lon"], datum_von, datum_bis
+        station["lat"], station["lon"], datum_von_api, datum_bis_api
     )
     if "error" in temp_data:
         return jsonify(temp_data), 500
@@ -113,6 +128,7 @@ def api_berechnen():
         personen=personen,
         t_heizgrenze=t_heizgrenze,
         eta=eta,
+        messdauer_tage=messdauer_tage,
     )
 
     if "error" in result:
@@ -130,6 +146,7 @@ def api_berechnen():
         "plz": plz,
         "datum_von": datum_von,
         "datum_bis": datum_bis,
+        "messdauer_tage": round(messdauer_tage, 2),
         "gasverbrauch_kwh": round(gasverbrauch_kwh, 1),
         "gasverbrauch_roh": gasverbrauch,
         "einheit": einheit,

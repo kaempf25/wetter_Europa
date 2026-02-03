@@ -50,13 +50,15 @@
                 <p class="info">Am besten eignen sich kalte Winterwochen (unter 5&deg;C Tagesmittel). Mindestens 7 Tage f&uuml;r zuverl&auml;ssige Ergebnisse. Lesen Sie den Z&auml;hlerstand zu Beginn und Ende des Zeitraums ab.</p>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="datum_von">Von</label>
-                        <input type="date" id="datum_von" name="datum_von" required>
+                        <label for="datum_von">Von (Datum &amp; Uhrzeit der Ablesung)</label>
+                        <input type="datetime-local" id="datum_von" name="datum_von" required>
+                        <span class="field-help">Datum und Uhrzeit, zu der Sie den Z&auml;hlerstand abgelesen haben.</span>
                     </div>
                     <div class="form-group">
-                        <label for="datum_bis">Bis</label>
-                        <input type="date" id="datum_bis" name="datum_bis" required>
+                        <label for="datum_bis">Bis (Datum &amp; Uhrzeit der Ablesung)</label>
+                        <input type="datetime-local" id="datum_bis" name="datum_bis" required>
                         <span class="hint" id="datum-hint"></span>
+                        <span class="field-help">Exakte Uhrzeiten sorgen f&uuml;r eine pr&auml;zisere Berechnung. Die Messdauer wird auf die Stunde genau berechnet.</span>
                     </div>
                 </div>
                 <div class="form-row">
@@ -181,6 +183,7 @@
                     <tr><td>Mittlere Au&szlig;entemperatur (alle Tage)</td><td id="res-avg-temp">-</td></tr>
                     <tr><td>Mittlere Au&szlig;entemperatur (nur Heiztage)</td><td id="res-avg-temp-heiz">-</td></tr>
                     <tr><td>Min / Max Temperatur</td><td id="res-minmax-temp">-</td></tr>
+                    <tr><td>Exakter Messzeitraum</td><td id="res-messdauer">-</td></tr>
                     <tr><td>Heiztage / Gesamttage</td><td id="res-tage">-</td></tr>
                     <tr><td>Heizgradtage (HGT)</td><td id="res-hgt">-</td></tr>
                 </table>
@@ -307,16 +310,34 @@
         });
 
         // Datumsfelder begrenzen
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('datum_von').setAttribute('max', today);
-        document.getElementById('datum_bis').setAttribute('max', today);
+        const now = new Date();
+        const todayLocal = now.getFullYear() + '-' +
+            String(now.getMonth() + 1).padStart(2, '0') + '-' +
+            String(now.getDate()).padStart(2, '0') + 'T' +
+            String(now.getHours()).padStart(2, '0') + ':' +
+            String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('datum_von').setAttribute('max', todayLocal);
+        document.getElementById('datum_bis').setAttribute('max', todayLocal);
         document.getElementById('datum_bis').addEventListener('change', function() {
             const hint = document.getElementById('datum-hint');
-            if (this.value > today) {
-                this.value = today;
-                hint.textContent = 'Auf heute begrenzt (keine Zukunftsdaten)';
+            if (this.value > todayLocal) {
+                this.value = todayLocal;
+                hint.textContent = 'Auf jetzt begrenzt (keine Zukunftsdaten)';
                 hint.className = 'hint error';
-            } else { hint.textContent = ''; }
+            } else {
+                // Messdauer berechnen und anzeigen
+                var von = document.getElementById('datum_von').value;
+                if (von && this.value) {
+                    var diff = (new Date(this.value) - new Date(von)) / 86400000;
+                    if (diff > 0) {
+                        hint.textContent = 'Messdauer: ' + diff.toFixed(1) + ' Tage (' + (diff * 24).toFixed(0) + ' Stunden)';
+                        hint.className = 'hint success';
+                    } else {
+                        hint.textContent = 'Endzeitpunkt muss nach Startzeitpunkt liegen';
+                        hint.className = 'hint error';
+                    }
+                } else { hint.textContent = ''; }
+            }
         });
 
         // m3-Felder ein/ausblenden
@@ -422,8 +443,9 @@
             document.getElementById('res-avg-temp').textContent = data.t_avg_alle + ' \u00B0C';
             document.getElementById('res-avg-temp-heiz').textContent = data.t_avg_heiztage + ' \u00B0C';
             document.getElementById('res-minmax-temp').textContent = data.temperatur.minimum + ' / ' + data.temperatur.maximum + ' \u00B0C';
-            document.getElementById('res-tage').textContent = data.heiztage + ' / ' + data.temperatur.tage + ' (Heizgrenze ' + data.heizgrenze + '\u00B0C)';
-            document.getElementById('res-hgt').textContent = data.heizgradtage + ' Kd';
+            document.getElementById('res-messdauer').textContent = data.messdauer_tage + ' Tage (' + (data.messdauer_tage * 24).toFixed(0) + ' Stunden)';
+            document.getElementById('res-tage').textContent = data.heiztage + ' / ' + data.messdauer_tage + ' Tage (Heizgrenze ' + data.heizgrenze + '\u00B0C, ' + data.kalendertage + ' Kalendertage)';
+            document.getElementById('res-hgt').textContent = data.heizgradtage + ' Kd' + (data.heizgradtage !== data.heizgradtage_kalendertage ? ' (normiert von ' + data.heizgradtage_kalendertage + ' Kd)' : '');
 
             // Energiebilanz
             document.getElementById('res-gasverbrauch').textContent = data.eingaben.gasverbrauch_kwh + ' kWh';
@@ -503,10 +525,10 @@
             }
             document.getElementById('bw-step1').textContent = step1;
 
-            var methode = data.grundlast_methode === 'personen' ? '(' + e.personen + ' Pers. \u00D7 3 kWh/Tag \u00D7 ' + data.temperatur.tage + ' Tage)' :
-                          data.grundlast_methode === 'automatisch' ? '(' + data.nicht_heiztage + ' Nicht-Heiztage / ' + data.temperatur.tage + ' Gesamttage)' : '(pauschal 12%)';
+            var methode = data.grundlast_methode === 'personen' ? '(' + e.personen + ' Pers. \u00D7 3 kWh/Tag \u00D7 ' + data.messdauer_tage + ' Tage)' :
+                          data.grundlast_methode === 'automatisch' ? '(' + data.nicht_heiztage + ' Nicht-Heiztage / ' + data.messdauer_tage + ' Gesamttage)' : '(pauschal 12%)';
             document.getElementById('bw-step2').textContent =
-                'HGT = ' + data.heizgradtage + ' Kd (' + data.heiztage + ' Heiztage unter ' + data.heizgrenze + '\u00B0C)\nWarmwasser: ' + data.warmwasser_kwh + ' kWh ' + methode + '\nHeizenergie: ' + data.nutzwaerme_kwh + ' \u2212 ' + data.warmwasser_kwh + ' = ' + data.heizenergie_kwh + ' kWh';
+                'Messzeitraum: ' + data.messdauer_tage + ' Tage (exakt), ' + data.kalendertage + ' Kalendertage\nHGT = ' + data.heizgradtage + ' Kd (' + data.heiztage + ' Heiztage unter ' + data.heizgrenze + '\u00B0C)\nWarmwasser: ' + data.warmwasser_kwh + ' kWh ' + methode + '\nHeizenergie: ' + data.nutzwaerme_kwh + ' \u2212 ' + data.warmwasser_kwh + ' = ' + data.heizenergie_kwh + ' kWh';
 
             document.getElementById('bw-step3').textContent =
                 'b = ' + data.heizenergie_kwh + ' kWh \u00F7 ' + data.heizgradtage + ' Kd = ' + data.waermeverlustkennwert_b + ' kWh/(Kd)';

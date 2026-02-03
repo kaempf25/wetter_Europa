@@ -122,6 +122,7 @@ def berechne_heizlast(
     t_innen=20.0,
     t_heizgrenze=15.0,
     eta=1.0,
+    messdauer_tage=None,
 ):
     """
     Berechne die Heizlast aus Gasverbrauch und Tagesmitteltemperaturen.
@@ -138,12 +139,19 @@ def berechne_heizlast(
         t_innen: Innentemperatur [C]
         t_heizgrenze: Heizgrenztemperatur [C]
         eta: Anlagen-Jahresnutzungsgrad (1.0 = kWh-Eingabe/Nutzwaerme)
+        messdauer_tage: Exakter Messzeitraum in Tagen (Dezimalwert, z.B. 2.0)
+                        Wenn None, wird len(daily_temps) als Fallback verwendet.
     """
     if not daily_temps:
         return {"error": "Keine Temperaturdaten vorhanden."}
 
-    tage = len(daily_temps)
-    if tage == 0:
+    kalendertage = len(daily_temps)
+    if kalendertage == 0:
+        return {"error": "Messzeitraum darf nicht 0 Tage sein."}
+
+    # Exakter Messzeitraum: vom Nutzer angegeben oder Fallback auf Kalendertage
+    tage = messdauer_tage if messdauer_tage is not None and messdauer_tage > 0 else float(kalendertage)
+    if tage <= 0:
         return {"error": "Messzeitraum darf nicht 0 Tage sein."}
 
     t_norm = get_norm_temperature(plz)
@@ -151,11 +159,18 @@ def berechne_heizlast(
     # Nutzwaerme aus Brennstoffverbrauch
     q_nutz = gasverbrauch_kwh * eta
 
-    # Heizgradtage berechnen
+    # Heizgradtage berechnen (aus Kalendertagen der Wetterdaten)
     hgt_data = berechne_heizgradtage(daily_temps, t_heizgrenze)
-    hgt = hgt_data["hgt"]
-    heiztage = hgt_data["heiztage"]
-    nicht_heiztage = tage - heiztage
+    hgt_kalendertage = hgt_data["hgt"]
+    heiztage_kalender = hgt_data["heiztage"]
+    nicht_heiztage_kalender = kalendertage - heiztage_kalender
+
+    # HGT auf exakten Messzeitraum normieren
+    # Wenn z.B. 3 Kalendertage aber nur 2.0 Messtage: HGT * (2.0/3)
+    hgt_faktor = tage / kalendertage if kalendertage > 0 else 1.0
+    hgt = round(hgt_kalendertage * hgt_faktor, 1)
+    heiztage = round(heiztage_kalender * hgt_faktor, 1)
+    nicht_heiztage = round(nicht_heiztage_kalender * hgt_faktor, 1)
 
     if hgt <= 0:
         return {
@@ -166,7 +181,7 @@ def berechne_heizlast(
             ).format(t_heizgrenze)
         }
 
-    # Warmwasser-/Grundlast-Trennung
+    # Warmwasser-/Grundlast-Trennung (basierend auf exaktem Messzeitraum)
     if personen > 0:
         # Personen-basierte WW-Schaetzung (beste Methode)
         q_ww_tag = personen * WW_KWH_PRO_PERSON_TAG
@@ -175,10 +190,9 @@ def berechne_heizlast(
         warmwasser_kwh = q_ww_gesamt
         warmwasser_anteil = round(q_ww_gesamt / q_nutz * 100, 1) if q_nutz > 0 else 0
         grundlast_methode = "personen"
-    elif nicht_heiztage >= 3:
-        # Nicht-Heiztage als Proxy: An diesen Tagen ist der Verbrauch reine Grundlast
-        # Proportionaler Anteil: nicht_heiztage/alle_tage des Verbrauchs ist Grundlast
-        q_ww_gesamt = q_nutz * nicht_heiztage / tage
+    elif nicht_heiztage_kalender >= 3:
+        # Nicht-Heiztage als Proxy
+        q_ww_gesamt = q_nutz * nicht_heiztage_kalender / kalendertage
         q_heiz = q_nutz - q_ww_gesamt
         warmwasser_kwh = q_ww_gesamt
         warmwasser_anteil = round(q_ww_gesamt / q_nutz * 100, 1) if q_nutz > 0 else 0
@@ -197,13 +211,13 @@ def berechne_heizlast(
     delta_t_norm = t_innen - t_norm
     heizlast_norm = b * delta_t_norm / 24
 
-    # Mittlere Heizleistung (nur Heiztage)
-    p_heiz_mittel = q_heiz / (heiztage * 24) if heiztage > 0 else 0
+    # Mittlere Heizleistung (ueber exakten Messzeitraum)
+    p_heiz_mittel = q_heiz / (tage * 24) if tage > 0 else 0
 
-    # Mittlere Temperatur
+    # Mittlere Temperatur (aus Kalendertagen)
     heiz_temps = [t for d, t in daily_temps.items() if t < t_heizgrenze]
     t_avg_heiztage = sum(heiz_temps) / len(heiz_temps) if heiz_temps else 0
-    t_avg_alle = sum(daily_temps.values()) / tage
+    t_avg_alle = sum(daily_temps.values()) / kalendertage if kalendertage > 0 else 0
 
     # Spezifische Heizlast
     spezifisch = heizlast_norm * 1000 / wohnflaeche if wohnflaeche > 0 else 0
@@ -215,6 +229,7 @@ def berechne_heizlast(
     sensitivitaet = berechne_sensitivitaet(
         q_nutz=q_nutz, daily_temps=daily_temps, tage=tage,
         t_innen=t_innen, t_norm=t_norm, wohnflaeche=wohnflaeche,
+        messdauer_tage=tage,
     )
 
     # Zeitraum-Warnung
@@ -222,7 +237,9 @@ def berechne_heizlast(
     if tage < 7:
         warnungen.append(
             "Kurzer Messzeitraum ({} Tage). "
-            "Empfohlen sind mindestens 7 Tage fuer zuverlaessige Ergebnisse.".format(tage)
+            "Empfohlen sind mindestens 7 Tage fuer zuverlaessige Ergebnisse.".format(
+                round(tage, 1) if tage != int(tage) else int(tage)
+            )
         )
     if t_avg_alle > 10:
         warnungen.append(
@@ -233,7 +250,7 @@ def berechne_heizlast(
         warnungen.append(
             "{} von {} Tagen lagen ueber der Heizgrenze ({}C) "
             "und wurden nicht fuer die Heizlast beruecksichtigt.".format(
-                nicht_heiztage, tage, t_heizgrenze
+                round(nicht_heiztage, 1), round(tage, 1), t_heizgrenze
             )
         )
 
@@ -248,9 +265,10 @@ def berechne_heizlast(
         "warmwasser_anteil_pct": warmwasser_anteil,
         "grundlast_methode": grundlast_methode,
         "waermeverlustkennwert_b": round(b, 3),
-        "heizgradtage": hgt_data["hgt"],
-        "heiztage": heiztage,
-        "nicht_heiztage": nicht_heiztage,
+        "heizgradtage": hgt,
+        "heizgradtage_kalendertage": hgt_kalendertage,
+        "heiztage": round(heiztage, 1),
+        "nicht_heiztage": round(nicht_heiztage, 1),
         "heizgrenze": t_heizgrenze,
         "t_avg_heiztage": round(t_avg_heiztage, 1),
         "t_avg_alle": round(t_avg_alle, 1),
@@ -258,21 +276,26 @@ def berechne_heizlast(
         "empfehlung_waermepumpe_kw": round(heizlast_norm * 1.1, 1),
         "sensitivitaet": sensitivitaet,
         "eta": eta,
+        "messdauer_tage": round(tage, 2),
+        "kalendertage": kalendertage,
         "warnungen": warnungen,
     }
 
 
-def berechne_sensitivitaet(q_nutz, daily_temps, tage, t_innen, t_norm, wohnflaeche):
+def berechne_sensitivitaet(q_nutz, daily_temps, tage, t_innen, t_norm, wohnflaeche, messdauer_tage=None):
     """
     Sensitivitaetsanalyse: Berechne Heizlast-Bandbreite fuer verschiedene
     Heizgrenzen und Warmwasseranteile.
     """
     varianten = []
     delta_t_norm = t_innen - t_norm
+    kalendertage = len(daily_temps)
+    mess_tage = messdauer_tage if messdauer_tage is not None and messdauer_tage > 0 else float(kalendertage)
+    hgt_faktor = mess_tage / kalendertage if kalendertage > 0 else 1.0
 
     for label_hg, t_hg in [("14", 14.0), ("15", 15.0), ("16", 16.0)]:
         hgt_data = berechne_heizgradtage(daily_temps, t_hg)
-        hgt = hgt_data["hgt"]
+        hgt = hgt_data["hgt"] * hgt_faktor  # Auf exakten Messzeitraum normieren
 
         if hgt > 0:
             for ww_pct in [8, 12, 18]:
