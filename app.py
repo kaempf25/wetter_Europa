@@ -118,6 +118,13 @@ def api_berechnen():
 
     daily_temps = temp_data.get("daily_means", {})
 
+    # Temperaturdaten auf tatsaechlichen Messzeitraum begrenzen
+    # Die Bright Sky API liefert manchmal einen zusaetzlichen Tag
+    daily_temps = {
+        day: temp for day, temp in daily_temps.items()
+        if datum_von_api <= day <= datum_bis_api
+    }
+
     # Heizlast berechnen
     result = berechne_heizlast(
         gasverbrauch_kwh=gasverbrauch_kwh,
